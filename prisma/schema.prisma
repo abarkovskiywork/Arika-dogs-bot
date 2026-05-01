@@ -22,3 +22,31 @@ model Booking {
   status          String    @default("pending")
   createdAt       DateTime  @default(now())
 }
+
+model ServiceEvent {
+  id              Int      @id @default(autoincrement())
+  googleEventId   String   @unique
+  calendarId      String
+  dogName         String
+  serviceType     String   // walk / boarding / home_visit
+  price           Int
+  walksPerDay     Int      @default(1)
+  trackingMode    String   @default("auto_done") // auto_done | ask_daily
+  checkTime       String?
+  isActive        Boolean  @default(true)
+  createdAt       DateTime @default(now())
+
+  walkLogs            WalkLog[]
+}
+
+model WalkLog {
+  id             Int      @id @default(autoincrement())
+  serviceEventId Int
+  serviceEvent   ServiceEvent @relation(fields: [serviceEventId], references: [id], onDelete: Cascade)
+
+  date           DateTime
+  walksCount     Int
+  createdAt      DateTime @default(now())
+
+  @@unique([serviceEventId, date])
+}

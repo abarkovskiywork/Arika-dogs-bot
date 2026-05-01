@@ -1,7 +1,7 @@
 import type { Bot } from "grammy";
 import { prisma } from "../db/prisma";
 import type { EContext } from "../types";
-import { isAllowed } from "../utils";
+import { dateKeyToUtcDate, getBelgradeDateKey, isAllowed } from "../utils/utils";
 
 export function registerWalkCheckActions(bot: Bot<EContext>): void {
   bot.callbackQuery(/^walk:(\d+):(\d+)$/, async (ctx) => {
@@ -15,8 +15,8 @@ export function registerWalkCheckActions(bot: Bot<EContext>): void {
     const serviceEventId = Number(ctx.match[1]);
     const walksCount = Number(ctx.match[2]);
 
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
+    const todayKey = getBelgradeDateKey()
+    const today = dateKeyToUtcDate(todayKey)
 
     console.log(serviceEventId, walksCount)
     await prisma.walkLog.upsert({

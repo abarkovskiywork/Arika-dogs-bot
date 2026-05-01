@@ -1,10 +1,10 @@
-import type { Bot } from "grammy";
+import type { Composer } from "grammy";
 import { prisma } from "../db/prisma";
-import { parseArgs } from "../utils";
+import { parseArgs } from "../utils/utils";
 import type { EContext } from "../types";
 
-export function registerUpdateServiceCommand(bot: Bot<EContext>) {
-  bot.command("update_service", async (ctx) => {
+export function registerUpdateServiceCommand(composer: Composer<EContext>) {
+  composer.command("update_service", async (ctx) => {
     const text = ctx.message?.text.replace("/update_service", "").trim() ?? "";
 
     // /update_service id=3 price=15 walksPerDay=2 checkTime=21:00

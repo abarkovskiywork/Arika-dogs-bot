@@ -1,14 +1,11 @@
-import type { Bot } from "grammy";
+import type { Composer } from "grammy";
 import { syncServices } from "../jobs/serviceSyncJob";
-import { isAllowed } from "../utils";
+import { isAllowed } from "../utils/utils";
 import type { EContext } from "../types";
 
 
-export function registerSyncServicesCommand(bot: Bot<EContext>): void {
-  bot.command("sync_services", async (ctx) => {
-    if (!ctx.from || !isAllowed(ctx.from.id)) {
-      return ctx.reply("Не для тебя 😌");
-    }
+export function registerSyncServicesCommand(composer: Composer<EContext>): void {
+  composer.command("sync_services", async (ctx) => {
 
     const result = await syncServices();
 

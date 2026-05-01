@@ -17,12 +17,14 @@ type ServiceEventArgs = {
     serviceType: string;
     price: number;
     walksPerDay: number;
+    trackingMode: string;
     isAllDay: boolean;
     checkTime?: string;
     startDate: string; // "2026-04-30"
     endDate: string;   // "2026-12-31"
     startTime?: string; // "09:00"
     endTime?: string;   // "10:00"
+    colorId?: number;
     timezone?: string;
 };
 
@@ -97,6 +99,7 @@ export async function createServiceEvent(data: ServiceEventArgs) {
         price,
         walksPerDay,
         isAllDay,
+        colorId,
         startDate,
         endDate,
         startTime,
@@ -110,6 +113,7 @@ export async function createServiceEvent(data: ServiceEventArgs) {
 
     const event = {
         summary: dogName,
+        colorId: colorId !== undefined ? String(colorId) : undefined,
         description:
             `dogName = ${dogName}\n` +
             `serviceType=${serviceType} \n` +
@@ -169,10 +173,10 @@ export async function createServiceEventWithDb(data: ServiceEventArgs) {
                 calendarId: data.calendarId,
                 dogName: data.dogName,
                 serviceType: data.serviceType,
+                trackingMode: data.trackingMode,
                 checkTime: data.checkTime,
                 price: data.price,
-                walksPerDay: data.walksPerDay,
-                trackingMode: "auto_done",
+                walksPerDay: data.walksPerDay
             },
         });
 
@@ -198,6 +202,31 @@ export async function createServiceEventWithDb(data: ServiceEventArgs) {
 
         throw error;
     }
+}
+
+export async function getEventInstances({
+    calendarId,
+    eventId,
+    timeMin,
+    timeMax,
+}: {
+    calendarId: string;
+    eventId: string;
+    timeMin: string;
+    timeMax: string;
+}) {
+    const auth = await authorize();
+    const calendar = google.calendar({ version: "v3", auth });
+
+    const res = await calendar.events.instances({
+        calendarId,
+        eventId,
+        timeMin,
+        timeMax,
+        showDeleted: false,
+    });
+
+    return res.data.items ?? [];
 }
 
 function addOneDay(ymd: string): string {

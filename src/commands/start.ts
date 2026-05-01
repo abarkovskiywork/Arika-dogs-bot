@@ -1,7 +1,7 @@
-import type { Bot } from "grammy"
+import type { Composer } from "grammy"
 import { EContext } from "../types";
 
-export function registerStartCommand(bot: Bot<EContext>) {
-    bot.command("start", (ctx) => ctx.reply("Test"));
+export function registerStartCommand(composer: Composer<EContext>) {
+    composer.command("start", (ctx) => ctx.reply("Test"));
 
 }

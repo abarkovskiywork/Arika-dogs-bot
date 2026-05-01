@@ -1,9 +1,9 @@
-import type { Bot } from "grammy";
+import type { Composer } from "grammy";
 import { prisma } from "../db/prisma";
 import type { EContext } from "../types";
 
-export function registerListServicesCommand(bot: Bot<EContext>) {
-  bot.command("list_services", async (ctx) => {
+export function registerListServicesCommand(composer: Composer<EContext>) {
+  composer.command("list_services", async (ctx) => {
     const services = await prisma.serviceEvent.findMany({
       orderBy: { createdAt: "desc" },
     });

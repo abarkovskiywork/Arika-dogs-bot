@@ -1,7 +1,7 @@
 import type { Composer } from "grammy";
 import { prisma } from "../db/prisma";
 import { getEventInstances } from "../services/googleCalendarService";
-import { addOneDay, getInstanceDate, isAllowed, parseArgs, toDayDate } from "../utils/utils";
+import { addOneDay, getInstanceDate, parseArgs, toDayDate } from "../utils/utils";
 import type { EContext } from "../types";
 
 export function registerIncomeReportCommand(composer: Composer<EContext>): void {

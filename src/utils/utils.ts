@@ -29,6 +29,15 @@ export function getBelgradeDateKey(date = new Date()): string {
   }).format(date);
 }
 
+export function getBelgradeTime(): string {
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/Belgrade",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(new Date());
+}
+
 export function dateKeyToUtcDate(dateKey: string): Date {
   return new Date(`${dateKey}T00:00:00.000Z`);
 }

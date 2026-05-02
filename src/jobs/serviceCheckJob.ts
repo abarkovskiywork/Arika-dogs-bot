@@ -4,13 +4,14 @@ import type { ServiceEvent } from "@prisma/client";
 import { Bot } from "grammy";
 import type { EContext } from "../types";
 import { InlineKeyboardButton } from "grammy/types";
+import { getBelgradeTime } from "../utils/utils";
 
 export function registerServiceCheckJob(bot: Bot<EContext>) {
   cron.schedule(
     "* * * * *", // каждую минуту
     async () => {
       const now = new Date();
-      const currentTime = now.toTimeString().slice(0, 5); // "22:00"
+      const currentTime = getBelgradeTime();
 
       const services = await prisma.serviceEvent.findMany({
         where: {

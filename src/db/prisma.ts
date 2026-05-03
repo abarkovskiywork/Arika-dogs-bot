@@ -5,7 +5,5 @@ import path from "path"
 
 console.log("PRISMA DB URL: ", process.env.DATABASE_URL);
 
-const absoluteDbPath = path.resolve(process.cwd(), "prisma/dev.db")
-
-const adapter = new PrismaBetterSqlite3({ url: `file:${absoluteDbPath}` });
+const adapter = new PrismaBetterSqlite3({ url: process.env.DATABASE_URL! });
 export const prisma = new PrismaClient({ adapter });

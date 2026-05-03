@@ -1,0 +1,92 @@
+import { prisma } from "./prisma";
+import { getBelgradeDateKey, toDayDate } from "../utils/utils";
+
+type ServiceEventCreateData = {
+  googleEventId: string;
+  calendarId: string;
+  dogName: string;
+  serviceType: string;
+  trackingMode: string;
+  checkTime?: string;
+  price: number;
+  walksPerDay: number;
+  startDate: Date;
+  endDate: Date;
+};
+
+type ServiceEventUpdateData = {
+  dogName?: string;
+  serviceType?: string;
+  price?: number;
+  walksPerDay?: number;
+  trackingMode?: string;
+  checkTime?: string | null;
+  isActive?: boolean;
+};
+
+function today(): Date {
+  return toDayDate(getBelgradeDateKey());
+}
+
+export async function getAllServiceEvents() {
+  return prisma.serviceEvent.findMany({
+    orderBy: { startDate: "asc" },
+  });
+}
+
+export async function getActiveServiceEvents() {
+  return prisma.serviceEvent.findMany({
+    where: { isActive: true },
+    orderBy: { startDate: "asc" },
+  });
+}
+
+export async function getCurrentServiceEvents() {
+  return prisma.serviceEvent.findMany({
+    where: { endDate: { gte: today() } },
+    orderBy: { createdAt: "desc" },
+  });
+}
+
+export async function getActiveCurrentServiceEvents() {
+  return prisma.serviceEvent.findMany({
+    where: { isActive: true, startDate: { gt: today() } },
+    orderBy: { startDate: "asc" },
+  });
+}
+
+export async function getAskDailyServiceEvents(checkTime: string) {
+  return prisma.serviceEvent.findMany({
+    where: { isActive: true, trackingMode: "ask_daily", checkTime },
+  });
+}
+
+export async function getServiceEventsByIds(ids: number[]) {
+  return prisma.serviceEvent.findMany({
+    where: { id: { in: ids } },
+    orderBy: { dogName: "asc" },
+  });
+}
+
+export async function getServiceEventById(id: number) {
+  return prisma.serviceEvent.findUnique({ where: { id } });
+}
+
+export async function createServiceEventRecord(data: ServiceEventCreateData) {
+  return prisma.serviceEvent.create({ data });
+}
+
+export async function updateServiceEvent(id: number, data: ServiceEventUpdateData) {
+  return prisma.serviceEvent.update({ where: { id }, data });
+}
+
+export async function deactivateServiceEvent(id: number) {
+  return prisma.serviceEvent.update({
+    where: { id },
+    data: { isActive: false },
+  });
+}
+
+export async function deleteServiceEventRecord(id: number) {
+  return prisma.serviceEvent.delete({ where: { id } });
+}

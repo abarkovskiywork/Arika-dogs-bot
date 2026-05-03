@@ -1,24 +1,19 @@
 import cron from "node-cron";
-import { prisma } from "../db/prisma";
+import { getAskDailyServiceEvents } from "../db/serviceEventData";
 import type { ServiceEvent } from "@prisma/client";
 import { Bot } from "grammy";
 import type { EContext } from "../types";
 import { InlineKeyboardButton } from "grammy/types";
+import { getBelgradeTime } from "../utils/utils";
 
 export function registerServiceCheckJob(bot: Bot<EContext>) {
   cron.schedule(
     "* * * * *", // каждую минуту
     async () => {
       const now = new Date();
-      const currentTime = now.toTimeString().slice(0, 5); // "22:00"
+      const currentTime = getBelgradeTime();
 
-      const services = await prisma.serviceEvent.findMany({
-        where: {
-          isActive: true,
-          trackingMode: "ask_daily",
-          checkTime: currentTime,
-        },
-      });
+      const services = await getAskDailyServiceEvents(currentTime);
 
       for (const service of services) {
         const serviceOptions = buildServiceOptions(service)

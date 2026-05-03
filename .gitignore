@@ -4,3 +4,6 @@ node_modules
 google-credentials.json
 google-token.json
 /src/generated/prisma
+/prisma/*.db
+/prisma/*.db-journal
+prisma/dev.db

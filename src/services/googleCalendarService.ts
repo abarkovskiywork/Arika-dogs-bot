@@ -1,6 +1,7 @@
 import { google } from "googleapis";
-import { prisma } from "../db/prisma";
+import { createServiceEventRecord } from "../db/serviceEventData";
 import { authorize } from "./googleAuthService";
+import { toDayDate } from "../utils/utils";
 
 type CalendarEventArgs = {
     calendarId: string;
@@ -167,17 +168,17 @@ export async function createServiceEventWithDb(data: ServiceEventArgs) {
             throw new Error("Google Calendar event was created without id");
         }
 
-        const serviceEvent = await prisma.serviceEvent.create({
-            data: {
-                googleEventId: calendarEvent.id,
-                calendarId: data.calendarId,
-                dogName: data.dogName,
-                serviceType: data.serviceType,
-                trackingMode: data.trackingMode,
-                checkTime: data.checkTime,
-                price: data.price,
-                walksPerDay: data.walksPerDay
-            },
+        const serviceEvent = await createServiceEventRecord({
+            googleEventId: calendarEvent.id,
+            calendarId: data.calendarId,
+            dogName: data.dogName,
+            serviceType: data.serviceType,
+            trackingMode: data.trackingMode,
+            checkTime: data.checkTime,
+            price: data.price,
+            walksPerDay: data.walksPerDay,
+            startDate: toDayDate(data.startDate),
+            endDate: toDayDate(data.endDate),
         });
 
         return {

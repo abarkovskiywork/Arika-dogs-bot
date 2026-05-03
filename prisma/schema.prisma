@@ -33,6 +33,8 @@ model ServiceEvent {
   walksPerDay     Int      @default(1)
   trackingMode    String   @default("auto_done") // auto_done | ask_daily
   checkTime       String?
+  startDate       DateTime
+  endDate         DateTime
   isActive        Boolean  @default(true)
   createdAt       DateTime @default(now())
 

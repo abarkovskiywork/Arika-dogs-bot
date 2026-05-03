@@ -1,12 +1,10 @@
 import type { Composer } from "grammy";
-import { prisma } from "../db/prisma";
-import type { EContext } from "../types";
+import type { EContext } from "../../types";
+import { getCurrentServiceEvents } from "../../db/serviceEventData";
 
 export function registerListServicesCommand(composer: Composer<EContext>) {
   composer.command("list_services", async (ctx) => {
-    const services = await prisma.serviceEvent.findMany({
-      orderBy: { createdAt: "desc" },
-    });
+    const services = await getCurrentServiceEvents()
 
     if (!services.length) {
       return ctx.reply("Сервисов нет");

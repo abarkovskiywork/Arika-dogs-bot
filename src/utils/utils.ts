@@ -1,11 +1,16 @@
 
-export function isAllowed(id: Number) {
-    const allowed = [
-          process.env.ADMIN_CHAT_ID,
-          process.env.SASHA_CHAT_ID,
-        ];
+export function isAdmin(id: Number) {
+  console.log(id, process.env.ADMIN_CHAT_ID)
+    return String(id) === process.env.ADMIN_CHAT_ID;
+}
 
-    return allowed.includes(String(id))
+export function isManager(id: Number) {
+    const managers = [
+        process.env.ADMIN_CHAT_ID,
+        process.env.SASHA_CHAT_ID,
+    ];
+
+    return managers.includes(String(id));
 }
 
 // Parses a string of key=value or key="value with spaces" pairs into a plain object.
@@ -29,8 +34,21 @@ export function getBelgradeDateKey(date = new Date()): string {
   }).format(date);
 }
 
+export function getBelgradeTime(): string {
+  return new Intl.DateTimeFormat("en-GB", {
+    timeZone: "Europe/Belgrade",
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  }).format(new Date());
+}
+
 export function dateKeyToUtcDate(dateKey: string): Date {
   return new Date(`${dateKey}T00:00:00.000Z`);
+}
+
+export function todayDateBG(): Date {
+  return dateKeyToUtcDate(getBelgradeDateKey())
 }
 
 export function isValidDate(value: string): boolean {

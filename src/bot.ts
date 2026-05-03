@@ -8,6 +8,7 @@ import { registerCommands } from "./commands"
 import type { EContext } from "./types";
 import { COMMANDS_HELP_LIST } from "./utils/constants"
 import { addServiceEventConversation } from "./conversations/addServiceEventConversation"
+import { registerLocationHandler } from "./handlers/locationHandler"
 
 const bot = new Bot<EContext>(process.env.BOT_TOKEN!);
 
@@ -25,6 +26,7 @@ async function main() {
     registerSyncServicesJob()
     registerServiceCheckJob(bot)
     registerWalkCheckActions(bot)
+    // registerLocationHandler(bot)
     registerCommands(bot)
 
     bot.on("message:text", async (ctx) => {

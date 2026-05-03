@@ -1,5 +1,5 @@
 import cron from "node-cron";
-import { prisma } from "../db/prisma";
+import { getActiveServiceEvents, deactivateServiceEvent } from "../db/serviceEventData";
 import { getCalendarEvent } from "../services/googleCalendarService";
 
 function getErrorStatus(error: unknown): number | undefined {
@@ -32,9 +32,7 @@ export async function syncServices(): Promise<{
   deactivated: number;
   errors: number;
 }> {
-  const serviceEvents = await prisma.serviceEvent.findMany({
-    where: { isActive: true },
-  });
+  const serviceEvents = await getActiveServiceEvents();
 
   let checked = 0;
   let deactivated = 0;
@@ -50,10 +48,7 @@ export async function syncServices(): Promise<{
       });
 
       if (event.status === "cancelled") {
-        await prisma.serviceEvent.update({
-          where: { id: serviceEvent.id },
-          data: { isActive: false },
-        });
+        await deactivateServiceEvent(serviceEvent.id);
 
         deactivated++;
       }
@@ -61,10 +56,7 @@ export async function syncServices(): Promise<{
       const status = getErrorStatus(error);
 
       if (status === 404 || status === 410) {
-        await prisma.serviceEvent.update({
-          where: { id: serviceEvent.id },
-          data: { isActive: false },
-        });
+        await deactivateServiceEvent(serviceEvent.id);
 
         deactivated++;
       } else {

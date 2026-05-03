@@ -2,25 +2,23 @@ import { InlineKeyboard } from "grammy";
 import type { Conversation } from "@grammyjs/conversations";
 import type { EContext } from "../types";
 import { createServiceEventWithDb } from "../services/googleCalendarService";
-import { CALENDAR_COLORS } from "../utils/constants";
+import { CALENDAR_COLORS, SERVICE_TYPES, TRACKING_MODES } from "../utils/constants";
 import { isValidDate, isValidTime } from "../utils/utils";
 
 type AddServiceConversation = Conversation<EContext, EContext>;
 
-const SERVICE_TYPES = ["walk", "boarding", "home_visit"] as const;
-const TRACKING_MODES = ["auto_done", "ask_daily"] as const;
 
-async function waitText(conversation: AddServiceConversation): Promise<string> {
+export async function waitText(conversation: AddServiceConversation): Promise<string> {
   const ctx = await conversation.waitFor("message:text");
   return ctx.message.text.trim();
 }
 
-async function askDogName(conversation: AddServiceConversation, ctx: EContext): Promise<string | null> {
+export async function askDogName(conversation: AddServiceConversation, ctx: EContext): Promise<string | null> {
   await ctx.reply("Имя собаки?");
   return waitText(conversation);
 }
 
-async function askServiceType(conversation: AddServiceConversation, ctx: EContext): Promise<string | null> {
+export async function askServiceType(conversation: AddServiceConversation, ctx: EContext): Promise<string | null> {
   await ctx.reply("Тип услуги:", {
     reply_markup: new InlineKeyboard()
       .text("Выгул", "service:walk")
@@ -43,7 +41,7 @@ async function askServiceType(conversation: AddServiceConversation, ctx: EContex
   return serviceType;
 }
 
-async function askPrice(conversation: AddServiceConversation, ctx: EContext): Promise<number | null> {
+export async function askPrice(conversation: AddServiceConversation, ctx: EContext): Promise<number | null> {
   await ctx.reply("Цена за день/услугу? Например: 10");
   const raw = await waitText(conversation);
   const price = Number(raw);
@@ -56,7 +54,7 @@ async function askPrice(conversation: AddServiceConversation, ctx: EContext): Pr
   return price;
 }
 
-async function askWalksPerDay(conversation: AddServiceConversation, ctx: EContext): Promise<number | null> {
+export async function askWalksPerDay(conversation: AddServiceConversation, ctx: EContext): Promise<number | null> {
   await ctx.reply("Сколько прогулок в день? Например: 2");
   const raw = await waitText(conversation);
   const walksPerDay = Number(raw);
@@ -69,7 +67,7 @@ async function askWalksPerDay(conversation: AddServiceConversation, ctx: EContex
   return walksPerDay;
 }
 
-async function askTrackingMode(conversation: AddServiceConversation, ctx: EContext): Promise<string | null> {
+export async function askTrackingMode(conversation: AddServiceConversation, ctx: EContext): Promise<string | null> {
   await ctx.reply("Режим трекинга:", {
     reply_markup: new InlineKeyboard()
       .text("По умолчанию выполнено", "tracking:auto_done")
@@ -91,7 +89,7 @@ async function askTrackingMode(conversation: AddServiceConversation, ctx: EConte
   return trackingMode;
 }
 
-async function askCheckTime(conversation: AddServiceConversation, ctx: EContext): Promise<string | null> {
+export async function askCheckTime(conversation: AddServiceConversation, ctx: EContext): Promise<string | null> {
   await ctx.reply("Во сколько спрашивать каждый день? Формат HH:mm, например 22:00");
   const checkTime = await waitText(conversation);
 

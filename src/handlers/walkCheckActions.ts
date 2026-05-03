@@ -1,11 +1,11 @@
 import type { Bot } from "grammy";
 import { prisma } from "../db/prisma";
 import type { EContext } from "../types";
-import { dateKeyToUtcDate, getBelgradeDateKey, isAllowed } from "../utils/utils";
+import { dateKeyToUtcDate, getBelgradeDateKey, isManager } from "../utils/utils";
 
 export function registerWalkCheckActions(bot: Bot<EContext>): void {
   bot.callbackQuery(/^walk:(\d+):(\d+)$/, async (ctx) => {
-    if (!ctx.from || !isAllowed(ctx.from.id)) {
+    if (!ctx.from || !isManager(ctx.from.id)) {
       return ctx.answerCallbackQuery({
         text: "Не для тебя 😌",
         show_alert: true,

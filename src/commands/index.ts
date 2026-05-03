@@ -1,45 +1,61 @@
 import { type Bot, Composer } from "grammy";
 import { adminOnly } from "../middlewares/adminOnly";
-import { registerMyIdCommand } from "./myid";
-import { registerAddServiceCommand } from "./addServiceEvent";
+import { managerRole } from "../middlewares/managerRole";
+import { registerMyIdCommand } from "./manager/myid";
+import { registerAddServiceCommand } from "./manager/addServiceEvent";
 import { registerStartCommand } from "./start";
-import { registerDeleteServiceCommand } from "./deleteServiceEvent";
-import { registerSyncServicesCommand } from "./syncServices";
-import { registerListServicesCommand } from "./listServiceEvents"
-import { registerUpdateServiceCommand } from "./updateServiceEvent"
-import { registerCountPriceCommand } from "./countPrice"
-import { registerIncomeReportCommand } from "./incomeReport"
+import { registerDeleteServiceCommand } from "./manager/deleteServiceEvent";
+import { registerSyncServicesCommand } from "./admin/syncServices";
+import { registerAdminListServicesCommand } from "./admin/adminListServices";
+import { registerAdminDeleteServiceCommand } from "./admin/adminDeleteService";
+import { registerListServicesCommand } from "./manager/listServiceEvents"
+import { registerUpdateServiceCommand } from "./manager/updateServiceEvent"
+import { registerCountPriceCommand } from "./manager/countPrice"
+import { registerIncomeReportCommand } from "./manager/incomeReport"
 import { CommandsRegistrar, EContext } from "../types";
+import { registerAdminTestTime } from "./admin/adminTestTIme";
 
 const adminCommands: CommandsRegistrar[] = [
+    registerSyncServicesCommand,
+    registerAdminListServicesCommand,
+    registerAdminDeleteServiceCommand,
+    registerAdminTestTime
+];
+
+const managerCommands: CommandsRegistrar[] = [
     registerAddServiceCommand,
     registerDeleteServiceCommand,
-    registerSyncServicesCommand,
     registerListServicesCommand,
     registerUpdateServiceCommand,
     registerCountPriceCommand,
-    registerIncomeReportCommand
-]
+    registerIncomeReportCommand,
+];
 
 const publicCommands: CommandsRegistrar[] = [
     registerStartCommand,
-    registerMyIdCommand
-]
+    registerMyIdCommand,
+];
 
 export function registerCommands(bot: Bot<EContext>) {
     const adminComposer = new Composer<EContext>();
+    const managerComposer = new Composer<EContext>();
     const publicComposer = new Composer<EContext>();
 
     for (const register of publicCommands) {
-        register(publicComposer)
+        register(publicComposer);
     }
 
     adminComposer.use(adminOnly);
-
     for (const register of adminCommands) {
-        register(adminComposer)
+        register(adminComposer);
     }
-    
-    bot.use(publicComposer)
-    bot.use(adminComposer)
+
+    managerComposer.use(managerRole);
+    for (const register of managerCommands) {
+        register(managerComposer);
+    }
+
+    bot.use(publicComposer);
+    bot.use(adminComposer);
+    bot.use(managerComposer);
 }

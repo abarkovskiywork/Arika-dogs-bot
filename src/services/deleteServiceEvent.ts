@@ -1,12 +1,10 @@
-import { prisma } from "../db/prisma";
+import { getServiceEventById, deleteServiceEventRecord } from "../db/serviceEventData";
 import { deleteCalendarEvent } from "./googleCalendarService";
 
 export async function deleteServiceEvent(
   serviceEventId: number
 ): Promise<void> {
-  const serviceEvent = await prisma.serviceEvent.findUnique({
-    where: { id: serviceEventId },
-  });
+  const serviceEvent = await getServiceEventById(serviceEventId);
 
   if (!serviceEvent) {
     throw new Error("ServiceEvent not found");
@@ -25,7 +23,5 @@ export async function deleteServiceEvent(
     }
   }
 
-  await prisma.serviceEvent.delete({
-    where: { id: serviceEventId },
-  });
+  await deleteServiceEventRecord(serviceEventId);
 }

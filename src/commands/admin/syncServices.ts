@@ -1,7 +1,6 @@
 import type { Composer } from "grammy";
-import { syncServices } from "../jobs/serviceSyncJob";
-import { isAllowed } from "../utils/utils";
-import type { EContext } from "../types";
+import { syncServices } from "../../jobs/serviceSyncJob";
+import type { EContext } from "../../types";
 
 
 export function registerSyncServicesCommand(composer: Composer<EContext>): void {

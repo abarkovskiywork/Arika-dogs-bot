@@ -1,5 +1,5 @@
 import cron from "node-cron";
-import { prisma } from "../db/prisma";
+import { getAskDailyServiceEvents } from "../db/serviceEventData";
 import type { ServiceEvent } from "@prisma/client";
 import { Bot } from "grammy";
 import type { EContext } from "../types";
@@ -13,13 +13,7 @@ export function registerServiceCheckJob(bot: Bot<EContext>) {
       const now = new Date();
       const currentTime = getBelgradeTime();
 
-      const services = await prisma.serviceEvent.findMany({
-        where: {
-          isActive: true,
-          trackingMode: "ask_daily",
-          checkTime: currentTime,
-        },
-      });
+      const services = await getAskDailyServiceEvents(currentTime);
 
       for (const service of services) {
         const serviceOptions = buildServiceOptions(service)

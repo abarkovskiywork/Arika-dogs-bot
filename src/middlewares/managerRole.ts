@@ -1,9 +1,9 @@
 import type { MiddlewareFn } from "grammy";
 import type { EContext } from "../types";
-import { isAdmin } from "../utils/utils";
+import { isManager } from "../utils/utils";
 
-export const adminOnly: MiddlewareFn<EContext> = async (ctx, next) => {
-  if (!ctx.from || !isAdmin(ctx.from.id)) {
+export const managerRole: MiddlewareFn<EContext> = async (ctx, next) => {
+  if (!ctx.from || !isManager(ctx.from.id)) {
     if (ctx.callbackQuery) {
       await ctx.answerCallbackQuery({
         text: "Не для тебя 😌",

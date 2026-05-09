@@ -51,19 +51,14 @@ async function incomeReportConversation(
 
       plannedWalks += service.walksPerDay;
 
-      const log = await prisma.walkLog.findUnique({
-        where: {
-          serviceEventId_date: {
-            serviceEventId: service.id,
-            date: toDayDate(dateKey),
-          },
-        },
+      const logs = await prisma.walkLog.findMany({
+        where: { serviceEventId: service.id, date: toDayDate(dateKey) },
       });
 
       let walksCount: number;
 
-      if (log) {
-        walksCount = log.walksCount;
+      if (logs.length) {
+        walksCount = logs.reduce((sum, l) => sum + l.walksCount, 0);
       } else if (service.trackingMode === "auto_done") {
         walksCount = service.walksPerDay;
       } else {

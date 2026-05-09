@@ -12,6 +12,9 @@ import { registerListServicesCommand } from "./manager/listServiceEvents"
 import { registerUpdateServiceCommand } from "./manager/updateServiceEvent"
 import { registerCountPriceCommand } from "./manager/countPrice"
 import { registerIncomeReportCommand } from "./manager/incomeReport"
+import { registerCheckCommand } from "./manager/checkServices"
+import { registerSetupServicesCommand } from "./manager/setupServices"
+import { registerSetDigestTimeCommand } from "./manager/setDigestTime"
 import { CommandsRegistrar, EContext } from "../types";
 import { registerAdminTestTime } from "./admin/adminTestTIme";
 
@@ -29,6 +32,9 @@ const managerCommands: CommandsRegistrar[] = [
     registerUpdateServiceCommand,
     registerCountPriceCommand,
     registerIncomeReportCommand,
+    registerCheckCommand,
+    registerSetupServicesCommand,
+    registerSetDigestTimeCommand,
 ];
 
 const publicCommands: CommandsRegistrar[] = [

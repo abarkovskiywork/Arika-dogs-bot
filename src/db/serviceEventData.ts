@@ -12,6 +12,7 @@ type ServiceEventCreateData = {
   walksPerDay: number;
   startDate: Date;
   endDate: Date;
+  needsSetup?: boolean;
 };
 
 type ServiceEventUpdateData = {
@@ -22,6 +23,9 @@ type ServiceEventUpdateData = {
   trackingMode?: string;
   checkTime?: string | null;
   isActive?: boolean;
+  needsSetup?: boolean;
+  startDate?: Date;
+  endDate?: Date;
 };
 
 function today(): Date {
@@ -89,4 +93,28 @@ export async function deactivateServiceEvent(id: number) {
 
 export async function deleteServiceEventRecord(id: number) {
   return prisma.serviceEvent.delete({ where: { id } });
+}
+
+export async function getServiceEventByGoogleId(googleEventId: string) {
+  return prisma.serviceEvent.findUnique({ where: { googleEventId } });
+}
+
+export async function getTodayServiceEvents() {
+  const todayKey = getBelgradeDateKey();
+  const today = toDayDate(todayKey);
+  return prisma.serviceEvent.findMany({
+    where: {
+      isActive: true,
+      startDate: { lte: today },
+      endDate: { gte: today },
+    },
+    orderBy: { dogName: "asc" },
+  });
+}
+
+export async function getNeedsSetupServiceEvents() {
+  return prisma.serviceEvent.findMany({
+    where: { needsSetup: true, isActive: true },
+    orderBy: { startDate: "asc" },
+  });
 }

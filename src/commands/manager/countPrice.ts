@@ -42,12 +42,15 @@ async function countPriceConversation(
 
       const date = new Date(`${dateKey}T00:00:00.000Z`);
 
-      const log = await prisma.walkLog.findUnique({
-        where: { serviceEventId_date: { serviceEventId: service.id, date } },
+      const logs = await prisma.walkLog.findMany({
+        where: { serviceEventId: service.id, date },
       });
 
-      const walksCount =
-        log?.walksCount ?? (service.trackingMode === "auto_done" ? service.walksPerDay : 0);
+      const walksCount = logs.length
+        ? logs.reduce((sum, l) => sum + l.walksCount, 0)
+        : service.trackingMode === "auto_done"
+          ? service.walksPerDay
+          : 0;
 
       serviceWalks += walksCount;
       serviceTotal += walksCount * service.price;

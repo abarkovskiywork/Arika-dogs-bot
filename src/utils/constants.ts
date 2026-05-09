@@ -5,7 +5,9 @@ export const COMMANDS_HELP_LIST = [
     { command: "delete_service", description: "Удалить услугу" },
     { command: "income_report", description: "Отчет по доходам" },
     { command: "count_price", description: "Подсчитать стоимость" },
-    
+    { command: "check", description: "Отметить прогулки за сегодня" },
+    { command: "setup_services", description: "Настроить новые события" },
+    { command: "set_digest_time", description: "Установить время ежедневного дайджеста" },
 ]
 
 export const CALENDAR_COLORS = [

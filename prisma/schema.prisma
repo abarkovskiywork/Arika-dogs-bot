@@ -36,6 +36,7 @@ model ServiceEvent {
   startDate       DateTime
   endDate         DateTime
   isActive        Boolean  @default(true)
+  needsSetup      Boolean  @default(false)
   createdAt       DateTime @default(now())
 
   walkLogs            WalkLog[]
@@ -48,7 +49,11 @@ model WalkLog {
 
   date           DateTime
   walksCount     Int
+  completed      Boolean?
   createdAt      DateTime @default(now())
+}
 
-  @@unique([serviceEventId, date])
+model UserSettings {
+  userId     String @id
+  digestTime String
 }

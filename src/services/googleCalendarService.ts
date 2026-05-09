@@ -230,6 +230,30 @@ export async function getEventInstances({
     return res.data.items ?? [];
 }
 
+export async function listCalendarEvents({
+    calendarId,
+    timeMin,
+    timeMax,
+}: {
+    calendarId: string;
+    timeMin?: string;
+    timeMax?: string;
+}) {
+    const auth = await authorize();
+    const calendar = google.calendar({ version: "v3", auth });
+
+    const res = await calendar.events.list({
+        calendarId,
+        timeMin: timeMin ?? new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString(),
+        timeMax: timeMax ?? new Date(Date.now() + 2 * 365 * 24 * 60 * 60 * 1000).toISOString(),
+        singleEvents: false,
+        showDeleted: true,
+        maxResults: 2500,
+    });
+
+    return res.data.items ?? [];
+}
+
 function addOneDay(ymd: string): string {
     const [year, month, day] = ymd.split("-").map(Number);
 

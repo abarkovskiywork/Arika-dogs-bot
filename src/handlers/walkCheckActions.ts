@@ -19,22 +19,8 @@ export function registerWalkCheckActions(bot: Bot<EContext>): void {
     const today = dateKeyToUtcDate(todayKey)
 
     console.log(serviceEventId, walksCount)
-    await prisma.walkLog.upsert({
-      where: {
-        serviceEventId_date: {
-          serviceEventId,
-          date: today,
-        },
-      },
-      update: {
-        walksCount,
-      },
-      create: {
-        serviceEventId,
-        date: today,
-        walksCount
-      },
-    });
+    await prisma.walkLog.deleteMany({ where: { serviceEventId, date: today } });
+    await prisma.walkLog.create({ data: { serviceEventId, date: today, walksCount } });
 
     await ctx.answerCallbackQuery(`Отмечено: ${walksCount}`);
 

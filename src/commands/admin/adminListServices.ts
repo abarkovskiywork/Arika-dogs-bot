@@ -5,6 +5,7 @@ import { todayDateBG } from "../../utils/utils";
 
 export function registerAdminListServicesCommand(composer: Composer<EContext>) {
   composer.command("admin_list_services", async (ctx) => {
+    console.log("admin get services");
     const services = await getAllServiceEvents();
 
     if (!services.length) {
@@ -13,8 +14,24 @@ export function registerAdminListServicesCommand(composer: Composer<EContext>) {
 
     const text = services
       .map((s) => {
-        const old = s.endDate >= todayDateBG() ? " | 🟡 passed!" : ""
-        return(`#${s.id} ${s.dogName} | ${s.serviceType} | ${s.price} | walks: ${s.walksPerDay} | mode: ${s.trackingMode} | checkTime: ${s.checkTime ?? "-"} | active: ${s.isActive ? "✅" : "❌"}${old}`)
+        console.log(s.endDate, todayDateBG(), s.endDate < todayDateBG());
+        const old = s.endDate < todayDateBG() ? " | 🟡 passed!" : "";
+        const start = new Intl.DateTimeFormat("en-GB", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        }).format(s.startDate);
+        const end = new Intl.DateTimeFormat("en-GB", {
+          month: "short",
+          day: "numeric",
+          year: "numeric",
+        }).format(s.endDate);
+
+        return (`#${s.id} ${s.dogName} | ${s.serviceType} | ${s.price} | ` +
+          `walks: ${s.walksPerDay} | mode: ${s.trackingMode} | checkTime: ${s.checkTime ?? "-"} | ` +
+          `start: ${start} ` +
+          `end: ${end} ` +
+          `active: ${s.isActive ? "✅" : "❌"}${old}`)
       })
       .join("\n----------------\n");
 

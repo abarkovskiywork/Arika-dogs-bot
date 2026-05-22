@@ -47,6 +47,8 @@ export function registerDigestJob(bot: Bot<EContext>): void {
       const currentTime = getBelgradeTime();
       const allSettings = await getAllUserSettings();
 
+      if( allSettings.length === 0 ) return;
+
       console.log(currentTime, allSettings[0].digestTime)
       for (const settings of allSettings) {
         if (settings.digestTime === currentTime) {

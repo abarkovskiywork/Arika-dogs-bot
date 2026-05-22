@@ -113,8 +113,14 @@ export async function getTodayServiceEvents() {
 }
 
 export async function getNeedsSetupServiceEvents() {
+  const todayKey = getBelgradeDateKey();
+  const today = toDayDate(todayKey);
   return prisma.serviceEvent.findMany({
-    where: { needsSetup: true, isActive: true },
+    where: { 
+      needsSetup: true,
+      isActive: true,
+      startDate: { gte: today }
+    },
     orderBy: { startDate: "asc" },
   });
 }

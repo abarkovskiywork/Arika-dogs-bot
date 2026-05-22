@@ -7,3 +7,5 @@ google-token.json
 /prisma/*.db
 /prisma/*.db-journal
 prisma/dev.db
+/dist/*
+dist

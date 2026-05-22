@@ -14,7 +14,7 @@ export async function waitText(conversation: AddServiceConversation): Promise<st
 }
 
 export async function askDogName(conversation: AddServiceConversation, ctx: EContext): Promise<string | null> {
-  await ctx.reply("Имя собаки?");
+  await ctx.reply("Название услуги?");
   return waitText(conversation);
 }
 
@@ -24,7 +24,8 @@ export async function askServiceType(conversation: AddServiceConversation, ctx: 
       .text("Выгул", "service:walk")
       .text("Передержка", "service:boarding")
       .row()
-      .text("Визит домой", "service:home_visit"),
+      .text("Визит домой", "service:home_visit")
+      .text("Уборка", "service:cleaning")
   });
 
   const cb = await conversation.waitFor("callback_query:data");
@@ -263,7 +264,7 @@ export async function addServiceEventConversation(
 
   await ctx.reply(
     `✅ Сервис создан\n` +
-      `Собака: ${dogName}\n` +
+      `Название: ${dogName}\n` +
       `Тип: ${serviceType}\n` +
       `Цена: ${price}\n` +
       (serviceType === "walk"

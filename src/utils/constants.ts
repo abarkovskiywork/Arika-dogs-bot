@@ -24,5 +24,5 @@ export const CALENDAR_COLORS = [
   { id: 11, emoji: "🍷", label: "тёмно-красный" },
 ] as const;
 
-export const SERVICE_TYPES = ["walk", "boarding", "home_visit"] as const;
+export const SERVICE_TYPES = ["walk", "boarding", "home_visit", "cleaning"] as const;
 export const TRACKING_MODES = ["auto_done", "ask_daily"] as const;

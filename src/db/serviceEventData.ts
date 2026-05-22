@@ -54,7 +54,7 @@ export async function getCurrentServiceEvents() {
 
 export async function getActiveCurrentServiceEvents() {
   return prisma.serviceEvent.findMany({
-    where: { isActive: true, startDate: { gt: today() } },
+    where: { isActive: true, endDate: { gte: today() } },
     orderBy: { startDate: "asc" },
   });
 }
@@ -119,7 +119,7 @@ export async function getNeedsSetupServiceEvents() {
     where: { 
       needsSetup: true,
       isActive: true,
-      startDate: { gte: today }
+      endDate: { gte: today }
     },
     orderBy: { startDate: "asc" },
   });

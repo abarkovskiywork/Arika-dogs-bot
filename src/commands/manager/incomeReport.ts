@@ -1,3 +1,4 @@
+import { TrackingMode } from "@prisma/client";
 import type { Composer } from "grammy";
 import { createConversation } from "@grammyjs/conversations";
 import type { Conversation } from "@grammyjs/conversations";
@@ -59,7 +60,7 @@ async function incomeReportConversation(
 
       if (logs.length) {
         walksCount = logs.reduce((sum, l) => sum + l.walksCount, 0);
-      } else if (service.trackingMode === "auto_done") {
+      } else if (service.trackingMode === TrackingMode.auto_done) {
         walksCount = service.walksPerDay;
       } else {
         walksCount = 0;

@@ -1,4 +1,5 @@
 import { google } from "googleapis";
+import { ServiceType, TrackingMode } from "@prisma/client";
 import { createServiceEventRecord } from "../db/serviceEventData";
 import { authorize } from "./googleAuthService";
 import { toDayDate } from "../utils/utils";
@@ -15,12 +16,11 @@ type CalendarEventArgs = {
 type ServiceEventArgs = {
     calendarId: string;
     dogName: string;
-    serviceType: string;
+    serviceType: ServiceType;
     price: number;
     walksPerDay: number;
-    trackingMode: string;
+    trackingMode: TrackingMode;
     isAllDay: boolean;
-    checkTime?: string;
     startDate: string; // "2026-04-30"
     endDate: string;   // "2026-12-31"
     startTime?: string; // "09:00"
@@ -174,7 +174,6 @@ export async function createServiceEventWithDb(data: ServiceEventArgs) {
             dogName: data.dogName,
             serviceType: data.serviceType,
             trackingMode: data.trackingMode,
-            checkTime: data.checkTime,
             price: data.price,
             walksPerDay: data.walksPerDay,
             startDate: toDayDate(data.startDate),

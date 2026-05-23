@@ -1,4 +1,5 @@
 import cron from "node-cron";
+import { ServiceType, TrackingMode } from "@prisma/client";
 import { listCalendarEvents } from "../services/googleCalendarService";
 import { createServiceEventRecord, updateServiceEvent } from "../db/serviceEventData";
 import { prisma } from "../db/prisma";
@@ -77,10 +78,10 @@ export async function syncCalendarEventsToDb(): Promise<{
           googleEventId: event.id,
           calendarId,
           dogName: event.summary,
-          serviceType: "walk",
+          serviceType: ServiceType.walk,
           price: 0,
           walksPerDay: 1,
-          trackingMode: "auto_done",
+          trackingMode: TrackingMode.auto_done,
           startDate: toDayDate(startDateStr),
           endDate: toDayDate(endDateStr),
           needsSetup: true,

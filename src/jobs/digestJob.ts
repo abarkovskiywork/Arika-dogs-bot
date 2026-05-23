@@ -1,43 +1,57 @@
 import cron from "node-cron";
+import { ServiceType } from "@prisma/client";
 import { Bot } from "grammy";
 import type { EContext } from "../types";
-import { getAllUserSettings } from "../db/userSettingsData";
+import { getAllUserSettings, getUserSettings } from "../db/userSettingsData";
 import { getTodayServiceEvents, getNeedsSetupServiceEvents } from "../db/serviceEventData";
 import { getBelgradeTime } from "../utils/utils";
 
-async function sendDailyDigest(bot: Bot<EContext>, userId: string): Promise<void> {
-  const [todayEvents, needsSetupEvents] = await Promise.all([
+const SERVICE_TYPE_LABEL: Partial<Record<ServiceType, string>> = {
+  [ServiceType.walk]: "выгул",
+  [ServiceType.boarding]: "передержка",
+  [ServiceType.home_visit]: "визит",
+  [ServiceType.cleaning]: "уборка",
+};
+
+export async function buildDigestMessage(userId?: string): Promise<{ text: string; hasContent: boolean }> {
+  const [todayEvents, needsSetupEvents, settings] = await Promise.all([
     getTodayServiceEvents(),
     getNeedsSetupServiceEvents(),
+    userId ? getUserSettings(userId) : Promise.resolve(null),
   ]);
 
-  if (!todayEvents.length && !needsSetupEvents.length) return;
-
-  const serviceTypeLabel: Record<string, string> = {
-    walk: "выгул",
-    boarding: "передержка",
-    home_visit: "визит",
-  };
-
-  let message = "📋 <b>Услуги на сегодня:</b>\n\n";
+  let text = "📋 <b>Услуги на сегодня:</b>\n\n";
 
   if (todayEvents.length) {
     for (const event of todayEvents) {
-      const type = serviceTypeLabel[event.serviceType] ?? event.serviceType;
-      message += `• ${event.dogName} — ${type}\n`;
+      const type = SERVICE_TYPE_LABEL[event.serviceType] ?? event.serviceType;
+      text += `• ${event.dogName} — ${type}\n`;
     }
-    message += "\nОтметь выполнение командой /check";
+    text += "\nОтметь выполнение командой /check";
   } else {
-    message += "Услуг на сегодня нет.";
+    text += "Услуг на сегодня нет.";
   }
 
   if (needsSetupEvents.length) {
-    message +=
+    text +=
       `\n\n⚠️ <b>${needsSetupEvents.length} событий без настройки.</b>\n` +
       `Запусти /setup_services чтобы заполнить детали.`;
   }
 
-  await bot.api.sendMessage(userId, message, { parse_mode: "HTML" });
+  if (settings) {
+    text +=
+      `\n\n⚙️ <b>Настройки:</b>\n` +
+      `Дайджест: ${settings.digestTime}\n` +
+      `Напоминание: ${settings.reminderTime}`;
+  }
+
+  return { text, hasContent: todayEvents.length > 0 || needsSetupEvents.length > 0 };
+}
+
+async function sendDailyDigest(bot: Bot<EContext>, userId: string): Promise<void> {
+  const { text, hasContent } = await buildDigestMessage(userId);
+  if (!hasContent) return;
+  await bot.api.sendMessage(userId, text, { parse_mode: "HTML" });
 }
 
 export function registerDigestJob(bot: Bot<EContext>): void {

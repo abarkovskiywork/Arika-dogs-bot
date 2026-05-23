@@ -20,3 +20,13 @@ export async function countCompletedWalkLogs(serviceEventId: number) {
     where: { serviceEventId, completed: true },
   });
 }
+
+export async function upsertReminderWalkLog(data: {
+  serviceEventId: number;
+  date: Date;
+  walksCount: number;
+  durationMinutes?: number;
+}) {
+  await prisma.walkLog.deleteMany({ where: { serviceEventId: data.serviceEventId, date: data.date } });
+  return prisma.walkLog.create({ data });
+}

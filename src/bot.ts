@@ -7,6 +7,7 @@ import { registerServiceCheckJob } from "./jobs/serviceCheckJob"
 import { registerDigestJob } from "./jobs/digestJob"
 import { registerWalkCheckActions } from "./handlers/walkCheckActions"
 import { registerCheckEventActions } from "./handlers/checkEventActions"
+import { registerReminderCheckActions } from "./handlers/reminderCheckActions"
 import { registerCommands } from "./commands"
 import type { EContext } from "./types";
 import { COMMANDS_HELP_LIST } from "./utils/constants"
@@ -34,6 +35,7 @@ async function main() {
     registerDigestJob(bot)
     registerWalkCheckActions(bot)
     registerCheckEventActions(bot)
+    registerReminderCheckActions(bot)
     // registerLocationHandler(bot)
     registerCommands(bot)
 

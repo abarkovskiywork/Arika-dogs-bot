@@ -1,4 +1,5 @@
 import { InlineKeyboard } from "grammy";
+import { ServiceType, TrackingMode } from "@prisma/client";
 import type { Conversation } from "@grammyjs/conversations";
 import { getAllServiceEvents, updateServiceEvent } from "../db/serviceEventData";
 import type { EContext } from "../types";
@@ -8,7 +9,6 @@ import {
   askPrice,
   askWalksPerDay,
   askTrackingMode,
-  askCheckTime,
 } from "./addServiceEventConversation";
 
 type UpdateConversation = Conversation<EContext, EContext>;
@@ -84,10 +84,9 @@ export async function updateServiceEventConversation(
   if (price === null) return;
 
   let walksPerDay = 1;
-  let trackingMode = "auto_done";
-  let checkTime: string | null = null;
+  let trackingMode: TrackingMode = TrackingMode.auto_done;
 
-  if (serviceType === "walk") {
+  if (serviceType === ServiceType.walk) {
     const walks = await askWalksPerDay(conversation, ctx);
     if (walks === null) return;
     walksPerDay = walks;
@@ -95,12 +94,6 @@ export async function updateServiceEventConversation(
     const mode = await askTrackingMode(conversation, ctx);
     if (!mode) return;
     trackingMode = mode;
-
-    if (trackingMode === "ask_daily") {
-      const time = await askCheckTime(conversation, ctx);
-      if (!time) return;
-      checkTime = time;
-    }
   }
 
   const isActive = await askIsActive(conversation, ctx);
@@ -112,7 +105,6 @@ export async function updateServiceEventConversation(
     price,
     walksPerDay,
     trackingMode,
-    checkTime,
     isActive,
   });
 
@@ -121,8 +113,8 @@ export async function updateServiceEventConversation(
       `Собака: ${updated.dogName}\n` +
       `Тип: ${updated.serviceType}\n` +
       `Цена: ${updated.price}\n` +
-      (updated.serviceType === "walk"
-        ? `В день: ${updated.walksPerDay}\nРежим: ${updated.trackingMode}\nCheck time: ${updated.checkTime ?? "-"}\n`
+      (updated.serviceType === ServiceType.walk
+        ? `В день: ${updated.walksPerDay}\nРежим: ${updated.trackingMode}\n`
         : "") +
       `Статус: ${updated.isActive ? "активен" : "неактивен"}`
   );

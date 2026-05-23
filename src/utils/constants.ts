@@ -8,6 +8,9 @@ export const COMMANDS_HELP_LIST = [
     { command: "check", description: "Отметить прогулки за сегодня" },
     { command: "setup_services", description: "Настроить новые события" },
     { command: "set_digest_time", description: "Установить время ежедневного дайджеста" },
+    { command: "set_reminder_time", description: "Установить время напоминания о прогулках" },
+    { command: "digest", description: "Показать дайджест на сегодня" },
+    { command: "reminder", description: "Отправить напоминание о прогулках" },
 ]
 
 export const CALENDAR_COLORS = [
@@ -24,5 +27,3 @@ export const CALENDAR_COLORS = [
   { id: 11, emoji: "🍷", label: "тёмно-красный" },
 ] as const;
 
-export const SERVICE_TYPES = ["walk", "boarding", "home_visit", "cleaning"] as const;
-export const TRACKING_MODES = ["auto_done", "ask_daily"] as const;

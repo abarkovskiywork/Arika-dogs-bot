@@ -1,13 +1,14 @@
 import { InlineKeyboard } from "grammy";
+import { ServiceType, TrackingMode } from "@prisma/client";
 import type { Conversation } from "@grammyjs/conversations";
 import { getNeedsSetupServiceEvents, updateServiceEvent } from "../db/serviceEventData";
+import { getUserSettings } from "../db/userSettingsData";
 import type { EContext } from "../types";
 import {
   askServiceType,
   askPrice,
   askWalksPerDay,
   askTrackingMode,
-  askCheckTime,
 } from "./addServiceEventConversation";
 
 type SetupConversation = Conversation<EContext, EContext>;
@@ -58,23 +59,18 @@ export async function setupServiceConversation(
   if (price === null) return;
 
   let walksPerDay = 1;
-  let trackingMode = "auto_done";
-  let checkTime: string | null = null;
+  let trackingMode: TrackingMode = TrackingMode.auto_done;
 
-  if (serviceType === "walk") {
+  if (serviceType === ServiceType.walk) {
     const walks = await askWalksPerDay(conversation, ctx);
     if (walks === null) return;
     walksPerDay = walks;
+  }
 
+  if (serviceType === ServiceType.walk || serviceType === ServiceType.cleaning) {
     const mode = await askTrackingMode(conversation, ctx);
     if (!mode) return;
     trackingMode = mode;
-
-    if (trackingMode === "ask_daily") {
-      const time = await askCheckTime(conversation, ctx);
-      if (!time) return;
-      checkTime = time;
-    }
   }
 
   await updateServiceEvent(id, {
@@ -82,7 +78,6 @@ export async function setupServiceConversation(
     price,
     walksPerDay,
     trackingMode,
-    checkTime,
     needsSetup: false,
   });
 
@@ -90,7 +85,7 @@ export async function setupServiceConversation(
     `✅ Настройка завершена для ${event.dogName}\n` +
       `Тип: ${serviceType}\n` +
       `Цена: ${price}\n` +
-      (serviceType === "walk"
+      (serviceType === ServiceType.walk
         ? `В день: ${walksPerDay}\nРежим: ${trackingMode}\n`
         : "")
   );

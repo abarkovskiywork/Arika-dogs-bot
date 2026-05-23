@@ -11,6 +11,18 @@ datasource db {
   provider = "sqlite"
 }
 
+enum ServiceType {
+  walk
+  boarding
+  home_visit
+  cleaning
+}
+
+enum TrackingMode {
+  auto_done
+  ask_daily
+}
+
 model Booking {
   id              Int       @id @default(autoincrement())
   userTelegramId  String
@@ -24,36 +36,37 @@ model Booking {
 }
 
 model ServiceEvent {
-  id              Int      @id @default(autoincrement())
-  googleEventId   String   @unique
+  id              Int          @id @default(autoincrement())
+  googleEventId   String       @unique
   calendarId      String
   dogName         String
-  serviceType     String   // walk / boarding / home_visit
+  serviceType     ServiceType
   price           Int
-  walksPerDay     Int      @default(1)
-  trackingMode    String   @default("auto_done") // auto_done | ask_daily
-  checkTime       String?
+  walksPerDay     Int          @default(1)
+  trackingMode    TrackingMode @default(auto_done)
   startDate       DateTime
   endDate         DateTime
-  isActive        Boolean  @default(true)
-  needsSetup      Boolean  @default(false)
-  createdAt       DateTime @default(now())
+  isActive        Boolean      @default(true)
+  needsSetup      Boolean      @default(false)
+  createdAt       DateTime     @default(now())
 
-  walkLogs            WalkLog[]
+  walkLogs        WalkLog[]
 }
 
 model WalkLog {
-  id             Int      @id @default(autoincrement())
-  serviceEventId Int
-  serviceEvent   ServiceEvent @relation(fields: [serviceEventId], references: [id], onDelete: Cascade)
+  id              Int      @id @default(autoincrement())
+  serviceEventId  Int
+  serviceEvent    ServiceEvent @relation(fields: [serviceEventId], references: [id], onDelete: Cascade)
 
-  date           DateTime
-  walksCount     Int
-  completed      Boolean?
-  createdAt      DateTime @default(now())
+  date            DateTime
+  walksCount      Int
+  durationMinutes Int?
+  completed       Boolean?
+  createdAt       DateTime @default(now())
 }
 
 model UserSettings {
-  userId     String @id
-  digestTime String
+  userId       String @id
+  digestTime   String @default("09:00")
+  reminderTime String @default("22:00")
 }

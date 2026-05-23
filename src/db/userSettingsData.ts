@@ -12,6 +12,14 @@ export async function upsertUserSettings(userId: string, digestTime: string) {
   });
 }
 
+export async function upsertReminderTime(userId: string, reminderTime: string) {
+  return prisma.userSettings.upsert({
+    where: { userId },
+    update: { reminderTime },
+    create: { userId, reminderTime },
+  });
+}
+
 export async function getAllUserSettings() {
   return prisma.userSettings.findMany();
 }

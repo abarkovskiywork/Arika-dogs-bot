@@ -28,7 +28,7 @@ export function registerAdminListServicesCommand(composer: Composer<EContext>) {
         }).format(s.endDate);
 
         return (`#${s.id} ${s.dogName} | ${s.serviceType} | ${s.price} | ` +
-          `walks: ${s.walksPerDay} | mode: ${s.trackingMode} | checkTime: ${s.checkTime ?? "-"} | ` +
+          `walks: ${s.walksPerDay} | mode: ${s.trackingMode} | ` +
           `start: ${start} ` +
           `end: ${end} ` +
           `active: ${s.isActive ? "✅" : "❌"}${old}`)

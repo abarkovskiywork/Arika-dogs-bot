@@ -1,6 +1,7 @@
 import type { Composer } from "grammy";
 import { createConversation } from "@grammyjs/conversations";
 import type { Conversation } from "@grammyjs/conversations";
+import { TrackingMode } from "@prisma/client";
 import { prisma } from "../../db/prisma";
 import { getServiceEventsByIds } from "../../db/serviceEventData";
 import { getEventInstances } from "../../services/googleCalendarService";
@@ -48,7 +49,7 @@ async function countPriceConversation(
 
       const walksCount = logs.length
         ? logs.reduce((sum, l) => sum + l.walksCount, 0)
-        : service.trackingMode === "auto_done"
+        : service.trackingMode === TrackingMode.auto_done
           ? service.walksPerDay
           : 0;
 

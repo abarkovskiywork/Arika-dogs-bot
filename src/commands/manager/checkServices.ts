@@ -16,29 +16,14 @@ export function registerCheckCommand(composer: Composer<EContext>) {
     }
 
     const keyboard = new InlineKeyboard();
-    let hasButtons = false;
 
     for (let i = 0; i < events.length; i++) {
       const event = events[i];
       const logsToday = await getWalkLogsForEventToday(event.id, today);
-      const doneCount = logsToday.length;
-
-      if (doneCount >= event.walksPerDay) continue;
-
-      const nextWalk = doneCount + 1;
-      const label =
-        event.walksPerDay > 1
-          ? `${event.dogName} ${nextWalk}/${event.walksPerDay}`
-          : event.dogName;
+      const label = logsToday.length > 0 ? `✅ ${event.dogName}` : event.dogName;
 
       keyboard.text(label, `checkview:${event.id}`);
-      if (i % 2 === 1) keyboard.row();
-      hasButtons = true;
-    }
-
-    if (!hasButtons) {
-      await ctx.reply("Все услуги на сегодня уже отмечены! ✅");
-      return;
+      if ((i + 1) % 2 === 0) keyboard.row();
     }
 
     await ctx.reply("Выбери услугу для отметки:", { reply_markup: keyboard });

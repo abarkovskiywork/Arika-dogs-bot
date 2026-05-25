@@ -13,7 +13,7 @@ export function registerListServicesCommand(composer: Composer<EContext>) {
     const text = services
       .map((s) => {
         return (
-          `#${s.id} ${s.dogName} type: ${s.serviceType} price: ${s.price} walks/day: ${s.walksPerDay} mode: ${s.trackingMode} active: ${s.isActive ? "✅" : "❌"}\n`
+          `#${s.id} ${s.dogName} type: ${s.serviceType} price: ${s.price} times/day: ${s.walksPerDay} mode: ${s.trackingMode} active: ${s.isActive ? "✅" : "❌"}\n`
         );
       })
       .join("\n----------------\n");

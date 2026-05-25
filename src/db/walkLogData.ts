@@ -1,4 +1,5 @@
 import { prisma } from "./prisma";
+import { getBelgradeDateKey, toDayDate } from "../utils/utils";
 
 export async function getWalkLogsForEventToday(serviceEventId: number, date: Date) {
   return prisma.walkLog.findMany({
@@ -15,10 +16,12 @@ export async function createWalkLogEntry(data: {
   return prisma.walkLog.create({ data });
 }
 
-export async function countCompletedWalkLogs(serviceEventId: number) {
-  return prisma.walkLog.count({
+export async function sumCompletedWalkLogs(serviceEventId: number) {
+  const result = await prisma.walkLog.aggregate({
     where: { serviceEventId, completed: true },
+    _sum: { walksCount: true },
   });
+  return result._sum.walksCount ?? 0;
 }
 
 export async function upsertReminderWalkLog(data: {
@@ -28,5 +31,25 @@ export async function upsertReminderWalkLog(data: {
   durationMinutes?: number;
 }) {
   await prisma.walkLog.deleteMany({ where: { serviceEventId: data.serviceEventId, date: data.date } });
-  return prisma.walkLog.create({ data });
+  return prisma.walkLog.create({
+    data: { ...data, completed: data.walksCount > 0 },
+  });
+}
+
+export async function backfillWalkLogsForPastDays(
+  serviceEventId: number,
+  startDate: Date,
+  walksPerDay: number
+) {
+  const todayDate = toDayDate(getBelgradeDateKey());
+  const cursor = new Date(startDate);
+
+  while (cursor < todayDate) {
+    const date = new Date(cursor);
+    const existing = await prisma.walkLog.findFirst({ where: { serviceEventId, date } });
+    if (!existing) {
+      await prisma.walkLog.create({ data: { serviceEventId, date, walksCount: walksPerDay, completed: true } });
+    }
+    cursor.setUTCDate(cursor.getUTCDate() + 1);
+  }
 }

@@ -1,16 +1,12 @@
 import type { Bot } from "grammy";
 import { InlineKeyboard } from "grammy";
+import { ServiceType } from "@prisma/client";
 import type { EContext } from "../types";
 import { isManager, getBelgradeDateKey, toDayDate } from "../utils/utils";
 import { getServiceEventById } from "../db/serviceEventData";
-import {
-  getWalkLogsForEventToday,
-  createWalkLogEntry,
-  countCompletedWalkLogs,
-} from "../db/walkLogData";
+import { upsertReminderWalkLog, sumCompletedWalkLogs } from "../db/walkLogData";
 
 export function registerCheckEventActions(bot: Bot<EContext>): void {
-  // Show check/cancel buttons for a specific event
   bot.callbackQuery(/^checkview:(\d+)$/, async (ctx) => {
     if (!ctx.from || !isManager(ctx.from.id)) {
       return ctx.answerCallbackQuery({ text: "Не для тебя 😌", show_alert: true });
@@ -23,39 +19,32 @@ export function registerCheckEventActions(bot: Bot<EContext>): void {
       return ctx.answerCallbackQuery({ text: "Событие не найдено", show_alert: true });
     }
 
-    const todayKey = getBelgradeDateKey();
-    const today = toDayDate(todayKey);
-    const logsToday = await getWalkLogsForEventToday(id, today);
-    const walkNumber = logsToday.length + 1;
+    await ctx.answerCallbackQuery();
 
-    if (walkNumber > event.walksPerDay) {
-      return ctx.answerCallbackQuery({
-        text: "Все прогулки на сегодня уже отмечены ✅",
-        show_alert: true,
+    if (event.serviceType === ServiceType.walk) {
+      const keyboard = new InlineKeyboard();
+      for (let i = 0; i <= event.walksPerDay; i++) {
+        keyboard.text(`${i}`, `checkdo:${id}:${i}`);
+      }
+      await ctx.editMessageText(`${event.dogName}: сколько прогулок сегодня?`, {
+        reply_markup: keyboard,
+      });
+    } else {
+      await ctx.editMessageText(`${event.dogName}\nОтметить как:`, {
+        reply_markup: new InlineKeyboard()
+          .text("✅ Выполнено", `checkdo:${id}:1`)
+          .text("❌ Отмена", `checkdo:${id}:0`),
       });
     }
-
-    const label =
-      event.walksPerDay > 1
-        ? `${event.dogName} — прогулка ${walkNumber}/${event.walksPerDay}`
-        : event.dogName;
-
-    await ctx.answerCallbackQuery();
-    await ctx.editMessageText(`${label}\nОтметить как:`, {
-      reply_markup: new InlineKeyboard()
-        .text("✅ Выполнено", `checkdo:${id}:1`)
-        .text("❌ Отмена", `checkdo:${id}:0`),
-    });
   });
 
-  // Record the check or cancel action
-  bot.callbackQuery(/^checkdo:(\d+):(0|1)$/, async (ctx) => {
+  bot.callbackQuery(/^checkdo:(\d+):(\d+)$/, async (ctx) => {
     if (!ctx.from || !isManager(ctx.from.id)) {
       return ctx.answerCallbackQuery({ text: "Не для тебя 😌", show_alert: true });
     }
 
     const id = Number(ctx.match[1]);
-    const completed = ctx.match[2] === "1";
+    const walksCount = Number(ctx.match[2]);
 
     const event = await getServiceEventById(id);
     if (!event) {
@@ -65,22 +54,25 @@ export function registerCheckEventActions(bot: Bot<EContext>): void {
     const todayKey = getBelgradeDateKey();
     const today = toDayDate(todayKey);
 
-    await createWalkLogEntry({ serviceEventId: id, date: today, walksCount: 1, completed });
+    await upsertReminderWalkLog({ serviceEventId: id, date: today, walksCount });
 
-    const resultLabel = completed ? "✅ Выполнено" : "❌ Отмена";
+    const resultLabel =
+      event.serviceType === ServiceType.walk
+        ? walksCount > 0 ? `✅ ${walksCount}` : "❌ 0"
+        : walksCount > 0 ? "✅ Выполнено" : "❌ Отмена";
 
     const endKey = getBelgradeDateKey(event.endDate);
     const isLastDay = endKey === todayKey;
 
     if (isLastDay) {
-      const completedCount = await countCompletedWalkLogs(id);
-      const earnings = event.price * completedCount;
+      const totalWalks = await sumCompletedWalkLogs(id);
+      const earnings = event.price * totalWalks;
 
       await ctx.answerCallbackQuery();
       await ctx.editMessageText(
         `${resultLabel}\n\n` +
           `🎉 Услуга для ${event.dogName} завершена сегодня!\n` +
-          `Выполнено прогулок: ${completedCount}\n` +
+          `Выполнено прогулок: ${totalWalks}\n` +
           `Заработано: ${earnings} 💰`
       );
     } else {

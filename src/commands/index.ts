@@ -25,11 +25,11 @@ const adminCommands: CommandsRegistrar[] = [
     registerSyncServicesCommand,
     registerAdminListServicesCommand,
     registerAdminDeleteServiceCommand,
-    registerAdminTestTime
+    registerAdminTestTime,
 ];
 
 const managerCommands: CommandsRegistrar[] = [
-    registerAddServiceCommand,
+    //registerAddServiceCommand,
     registerDeleteServiceCommand,
     registerListServicesCommand,
     registerUpdateServiceCommand,

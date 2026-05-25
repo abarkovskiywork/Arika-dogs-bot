@@ -1,5 +1,5 @@
 export const COMMANDS_HELP_LIST = [
-    { command: "add_service", description: "Добавить услугу" },
+   // { command: "add_service", description: "Добавить услугу" },
     { command: "update_service", description: "Обновить услугу" },
     { command: "list_services", description: "Список услуг" },
     { command: "delete_service", description: "Удалить услугу" },

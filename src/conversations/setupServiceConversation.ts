@@ -2,7 +2,7 @@ import { InlineKeyboard } from "grammy";
 import { ServiceType, TrackingMode } from "@prisma/client";
 import type { Conversation } from "@grammyjs/conversations";
 import { getNeedsSetupServiceEvents, updateServiceEvent } from "../db/serviceEventData";
-import { getUserSettings } from "../db/userSettingsData";
+import { backfillWalkLogsForPastDays } from "../db/walkLogData";
 import type { EContext } from "../types";
 import {
   askServiceType,
@@ -80,6 +80,10 @@ export async function setupServiceConversation(
     trackingMode,
     needsSetup: false,
   });
+
+  if (trackingMode === TrackingMode.ask_daily) {
+    await backfillWalkLogsForPastDays(id, event.startDate, walksPerDay);
+  }
 
   await ctx.reply(
     `✅ Настройка завершена для ${event.dogName}\n` +

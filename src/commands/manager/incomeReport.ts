@@ -24,69 +24,54 @@ async function incomeReportConversation(
   const timeMax = `${addOneDay(endDate)}T00:00:00+02:00`;
 
   let totalIncome = 0;
-  let totalPlannedWalks = 0;
   let totalActualWalks = 0;
-  let totalPendingDays = 0;
 
   const reportLines: string[] = [];
 
   for (const service of services) {
-    const instances = await getEventInstances({
-      calendarId: service.calendarId,
-      eventId: service.googleEventId,
-      timeMin,
-      timeMax,
-    });
+    let actualWalks: number;
+    let serviceIncome: number;
+    let line: string;
 
-    let serviceIncome = 0;
-    let plannedWalks = 0;
-    let actualWalks = 0;
-    let pendingDays = 0;
-    let skippedWalks = 0;
-
-    for (const instance of instances) {
-      if (instance.status === "cancelled") continue;
-
-      const dateKey = getInstanceDate(instance);
-      if (!dateKey) continue;
-
-      plannedWalks += service.walksPerDay;
-
-      const logs = await prisma.walkLog.findMany({
-        where: { serviceEventId: service.id, date: toDayDate(dateKey) },
+    if (service.trackingMode === TrackingMode.auto_done) {
+      const instances = await getEventInstances({
+        calendarId: service.calendarId,
+        eventId: service.googleEventId,
+        timeMin,
+        timeMax,
       });
-
-      let walksCount: number;
-
-      if (logs.length) {
-        walksCount = logs.reduce((sum, l) => sum + l.walksCount, 0);
-      } else if (service.trackingMode === TrackingMode.auto_done) {
-        walksCount = service.walksPerDay;
-      } else {
-        walksCount = 0;
-        pendingDays++;
-      }
-
-      actualWalks += walksCount;
-      skippedWalks += Math.max(service.walksPerDay - walksCount, 0);
-      serviceIncome += walksCount * service.price;
+      const dayCount = instances.filter(
+        (i) => i.status !== "cancelled" && getInstanceDate(i)
+      ).length;
+      actualWalks = dayCount * service.walksPerDay;
+      serviceIncome = actualWalks * service.price;
+      line =
+        `${service.dogName} #${service.id}\n` +
+        `type: ${service.serviceType}\n` +
+        `price: ${service.price}\n` +
+        `days: ${dayCount}\n` +
+        `walks: ${actualWalks}\n` +
+        `income: ${serviceIncome}`;
+    } else {
+      const logs = await prisma.walkLog.findMany({
+        where: {
+          serviceEventId: service.id,
+          date: { gte: toDayDate(startDate), lte: toDayDate(endDate) },
+        },
+      });
+      actualWalks = logs.reduce((sum, l) => sum + l.walksCount, 0);
+      serviceIncome = actualWalks * service.price;
+      line =
+        `${service.dogName} #${service.id}\n` +
+        `type: ${service.serviceType}\n` +
+        `price: ${service.price}\n` +
+        `walks: ${actualWalks}\n` +
+        `income: ${serviceIncome}`;
     }
 
     totalIncome += serviceIncome;
-    totalPlannedWalks += plannedWalks;
     totalActualWalks += actualWalks;
-    totalPendingDays += pendingDays;
-
-    reportLines.push(
-      `${service.dogName} #${service.id}\n` +
-        `type: ${service.serviceType}\n` +
-        `price: ${service.price}\n` +
-        `planned: ${plannedWalks}\n` +
-        `actual: ${actualWalks}\n` +
-        `skipped: ${skippedWalks}\n` +
-        `pending days: ${pendingDays}\n` +
-        `income: ${serviceIncome}`
-    );
+    reportLines.push(line);
   }
 
   await ctx.reply(
@@ -94,9 +79,7 @@ async function incomeReportConversation(
       `Period: ${startDate} → ${endDate}\n\n` +
       reportLines.join("\n\n---\n\n") +
       `\n\nTOTAL\n` +
-      `planned: ${totalPlannedWalks}\n` +
-      `actual: ${totalActualWalks}\n` +
-      `pending days: ${totalPendingDays}\n` +
+      `walks: ${totalActualWalks}\n` +
       `income: ${totalIncome}`
   );
 }

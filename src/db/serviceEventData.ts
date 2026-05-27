@@ -1,3 +1,4 @@
+import { ServiceType, TrackingMode } from "@prisma/client";
 import { prisma } from "./prisma";
 import { getBelgradeDateKey, toDayDate } from "../utils/utils";
 
@@ -5,23 +6,25 @@ type ServiceEventCreateData = {
   googleEventId: string;
   calendarId: string;
   dogName: string;
-  serviceType: string;
-  trackingMode: string;
-  checkTime?: string;
+  serviceType: ServiceType;
+  trackingMode: TrackingMode;
   price: number;
   walksPerDay: number;
   startDate: Date;
   endDate: Date;
+  needsSetup?: boolean;
 };
 
 type ServiceEventUpdateData = {
   dogName?: string;
-  serviceType?: string;
+  serviceType?: ServiceType;
   price?: number;
   walksPerDay?: number;
-  trackingMode?: string;
-  checkTime?: string | null;
+  trackingMode?: TrackingMode;
   isActive?: boolean;
+  needsSetup?: boolean;
+  startDate?: Date;
+  endDate?: Date;
 };
 
 function today(): Date {
@@ -50,14 +53,25 @@ export async function getCurrentServiceEvents() {
 
 export async function getActiveCurrentServiceEvents() {
   return prisma.serviceEvent.findMany({
-    where: { isActive: true, startDate: { gt: today() } },
+    where: { isActive: true, endDate: { gte: today() } },
     orderBy: { startDate: "asc" },
   });
 }
 
-export async function getAskDailyServiceEvents(checkTime: string) {
+export async function getTodayAskDailyServiceEvents() {
+  const todayKey = getBelgradeDateKey();
+  const today = toDayDate(todayKey);
   return prisma.serviceEvent.findMany({
-    where: { isActive: true, trackingMode: "ask_daily", checkTime },
+    where: {
+      isActive: true,
+      trackingMode: TrackingMode.ask_daily,
+      startDate: { lte: today },
+      endDate: { gte: today },
+    },
+    include: {
+      walkLogs: { where: { date: today } },
+    },
+    orderBy: { dogName: "asc" },
   });
 }
 
@@ -89,4 +103,38 @@ export async function deactivateServiceEvent(id: number) {
 
 export async function deleteServiceEventRecord(id: number) {
   return prisma.serviceEvent.delete({ where: { id } });
+}
+
+export async function getServiceEventByGoogleId(googleEventId: string) {
+  return prisma.serviceEvent.findUnique({ where: { googleEventId } });
+}
+
+export async function getTodayServiceEvents() {
+  const todayKey = getBelgradeDateKey();
+  const today = toDayDate(todayKey);
+  return prisma.serviceEvent.findMany({
+    where: {
+      isActive: true,
+      startDate: { lte: today },
+      endDate: { gte: today },
+    },
+    orderBy: { dogName: "asc" },
+  });
+}
+
+export async function getNeedsSetupServiceEvents() {
+  const todayKey = getBelgradeDateKey();
+  const today = toDayDate(todayKey);
+  const twoWeeks = new Date(today);
+  twoWeeks.setDate(twoWeeks.getDate() + 14)
+
+  return prisma.serviceEvent.findMany({
+    where: { 
+      needsSetup: true,
+      isActive: true,
+      endDate: { gte: today },
+      startDate: { lte: twoWeeks }
+    },
+    orderBy: { startDate: "asc" },
+  });
 }

@@ -1,8 +1,9 @@
 import { InlineKeyboard } from "grammy";
 import type { Conversation } from "@grammyjs/conversations";
+import { ServiceType, TrackingMode } from "@prisma/client";
 import type { EContext } from "../types";
 import { createServiceEventWithDb } from "../services/googleCalendarService";
-import { CALENDAR_COLORS, SERVICE_TYPES, TRACKING_MODES } from "../utils/constants";
+import { CALENDAR_COLORS } from "../utils/constants";
 import { isValidDate, isValidTime } from "../utils/utils";
 
 type AddServiceConversation = Conversation<EContext, EContext>;
@@ -14,17 +15,18 @@ export async function waitText(conversation: AddServiceConversation): Promise<st
 }
 
 export async function askDogName(conversation: AddServiceConversation, ctx: EContext): Promise<string | null> {
-  await ctx.reply("Имя собаки?");
+  await ctx.reply("Название услуги?");
   return waitText(conversation);
 }
 
-export async function askServiceType(conversation: AddServiceConversation, ctx: EContext): Promise<string | null> {
+export async function askServiceType(conversation: AddServiceConversation, ctx: EContext): Promise<ServiceType | null> {
   await ctx.reply("Тип услуги:", {
     reply_markup: new InlineKeyboard()
       .text("Выгул", "service:walk")
       .text("Передержка", "service:boarding")
       .row()
-      .text("Визит домой", "service:home_visit"),
+      .text("Визит домой", "service:home_visit")
+      .text("Уборка", "service:cleaning")
   });
 
   const cb = await conversation.waitFor("callback_query:data");
@@ -32,13 +34,13 @@ export async function askServiceType(conversation: AddServiceConversation, ctx: 
 
   const serviceType = cb.callbackQuery.data.replace("service:", "");
 
-  if (!SERVICE_TYPES.includes(serviceType as (typeof SERVICE_TYPES)[number])) {
+  if (!(Object.values(ServiceType) as string[]).includes(serviceType)) {
     await ctx.reply("Неверный тип услуги. Запусти /addservice заново.");
     return null;
   }
 
   await cb.editMessageText(`Тип услуги: ${serviceType}`);
-  return serviceType;
+  return serviceType as ServiceType;
 }
 
 export async function askPrice(conversation: AddServiceConversation, ctx: EContext): Promise<number | null> {
@@ -67,7 +69,7 @@ export async function askWalksPerDay(conversation: AddServiceConversation, ctx: 
   return walksPerDay;
 }
 
-export async function askTrackingMode(conversation: AddServiceConversation, ctx: EContext): Promise<string | null> {
+export async function askTrackingMode(conversation: AddServiceConversation, ctx: EContext): Promise<TrackingMode | null> {
   await ctx.reply("Режим трекинга:", {
     reply_markup: new InlineKeyboard()
       .text("По умолчанию выполнено", "tracking:auto_done")
@@ -80,25 +82,13 @@ export async function askTrackingMode(conversation: AddServiceConversation, ctx:
 
   const trackingMode = cb.callbackQuery.data.replace("tracking:", "");
 
-  if (!TRACKING_MODES.includes(trackingMode as (typeof TRACKING_MODES)[number])) {
+  if (!(Object.values(TrackingMode) as string[]).includes(trackingMode)) {
     await ctx.reply("Неверный режим. Запусти /addservice заново.");
     return null;
   }
 
   await cb.editMessageText(`Режим: ${trackingMode}`);
-  return trackingMode;
-}
-
-export async function askCheckTime(conversation: AddServiceConversation, ctx: EContext): Promise<string | null> {
-  await ctx.reply("Во сколько спрашивать каждый день? Формат HH:mm, например 22:00");
-  const checkTime = await waitText(conversation);
-
-  if (!isValidTime(checkTime)) {
-    await ctx.reply("Время должно быть в формате HH:mm. Запусти /addservice заново.");
-    return null;
-  }
-
-  return checkTime;
+  return trackingMode as TrackingMode;
 }
 
 async function askEventMode(conversation: AddServiceConversation, ctx: EContext): Promise<boolean | null> {
@@ -208,10 +198,9 @@ export async function addServiceEventConversation(
   if (price === null) return;
 
   let walksPerDay = 1;
-  let trackingMode = "auto_done";
-  let checkTime: string | undefined;
+  let trackingMode: TrackingMode = TrackingMode.auto_done;
 
-  if (serviceType === "walk") {
+  if (serviceType === ServiceType.walk) {
     const walks = await askWalksPerDay(conversation, ctx);
     if (walks === null) return;
     walksPerDay = walks;
@@ -219,12 +208,6 @@ export async function addServiceEventConversation(
     const mode = await askTrackingMode(conversation, ctx);
     if (!mode) return;
     trackingMode = mode;
-
-    if (trackingMode === "ask_daily") {
-      const time = await askCheckTime(conversation, ctx);
-      if (!time) return;
-      checkTime = time;
-    }
   }
 
   const isAllDay = await askEventMode(conversation, ctx);
@@ -252,7 +235,6 @@ export async function addServiceEventConversation(
     price,
     walksPerDay,
     trackingMode,
-    checkTime,
     isAllDay,
     colorId,
     startDate: dateRange.startDate,
@@ -263,11 +245,11 @@ export async function addServiceEventConversation(
 
   await ctx.reply(
     `✅ Сервис создан\n` +
-      `Собака: ${dogName}\n` +
+      `Название: ${dogName}\n` +
       `Тип: ${serviceType}\n` +
       `Цена: ${price}\n` +
-      (serviceType === "walk"
-        ? `В день: ${walksPerDay}\nРежим: ${trackingMode}\nCheck time: ${checkTime ?? "-"}\n`
+      (serviceType === ServiceType.walk
+        ? `В день: ${walksPerDay}\nРежим: ${trackingMode}\n`
         : "") +
       `ID в БД: ${result.serviceEvent.id}\n` +
       `${result.calendarEvent.htmlLink ?? ""}`

@@ -1,46 +1,32 @@
 import cron from "node-cron";
-import { getAskDailyServiceEvents } from "../db/serviceEventData";
-import type { ServiceEvent } from "@prisma/client";
+import { getTodayAskDailyServiceEvents } from "../db/serviceEventData";
+import { getAllUserSettings } from "../db/userSettingsData";
 import { Bot } from "grammy";
 import type { EContext } from "../types";
-import { InlineKeyboardButton } from "grammy/types";
 import { getBelgradeTime } from "../utils/utils";
+import { buildReminderContent } from "../handlers/reminderCheckActions";
 
 export function registerServiceCheckJob(bot: Bot<EContext>) {
   cron.schedule(
-    "* * * * *", // каждую минуту
+    "* * * * *",
     async () => {
-      const now = new Date();
       const currentTime = getBelgradeTime();
+      const allSettings = await getAllUserSettings();
+      const matching = allSettings.filter((s) => s.reminderTime === currentTime);
+      if (matching.length === 0) return;
 
-      const services = await getAskDailyServiceEvents(currentTime);
+      const services = await getTodayAskDailyServiceEvents();
+      if (services.length === 0 || services.every((s) => s.walkLogs.length > 0)) return;
 
-      for (const service of services) {
-        const serviceOptions = buildServiceOptions(service)
-        await bot.api.sendMessage(
-          process.env.SASHA_CHAT_ID!,
-          `${service.dogName}: сколько прогулок было сегодня?`,
-          {
-            reply_markup: {
-              inline_keyboard: [
-                serviceOptions,
-              ],
-            },
-          }
-        );
+      const { text, keyboard } = buildReminderContent(services);
+      for (const settings of matching) {
+        try {
+          await bot.api.sendMessage(settings.userId, text, { reply_markup: keyboard });
+        } catch (error) {
+          console.error("[service_check_job] error for user:", settings.userId, error);
+        }
       }
     },
-    {
-      timezone: "Europe/Belgrade",
-    }
+    { timezone: "Europe/Belgrade" }
   );
-}
-
-function buildServiceOptions(service: ServiceEvent): InlineKeyboardButton[] {
-  const res = []
-  for (let i = 0; i <= service.walksPerDay; i++) {
-    res.push({text: `${i}`, callback_data: `walk:${service.id}:${i}`})
-  }
-  console.log(res);
-  return res;
 }

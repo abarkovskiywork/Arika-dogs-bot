@@ -1,11 +1,16 @@
 export const COMMANDS_HELP_LIST = [
-    { command: "add_service", description: "Добавить услугу" },
+   // { command: "add_service", description: "Добавить услугу" },
     { command: "update_service", description: "Обновить услугу" },
     { command: "list_services", description: "Список услуг" },
     { command: "delete_service", description: "Удалить услугу" },
     { command: "income_report", description: "Отчет по доходам" },
     { command: "count_price", description: "Подсчитать стоимость" },
-    
+    { command: "check", description: "Отметить прогулки за сегодня" },
+    { command: "setup_services", description: "Настроить новые события" },
+    { command: "set_digest_time", description: "Установить время ежедневного дайджеста" },
+    { command: "set_reminder_time", description: "Установить время напоминания о прогулках" },
+    { command: "digest", description: "Показать дайджест на сегодня" },
+    { command: "reminder", description: "Отправить напоминание о прогулках" },
 ]
 
 export const CALENDAR_COLORS = [
@@ -22,5 +27,3 @@ export const CALENDAR_COLORS = [
   { id: 11, emoji: "🍷", label: "тёмно-красный" },
 ] as const;
 
-export const SERVICE_TYPES = ["walk", "boarding", "home_visit"] as const;
-export const TRACKING_MODES = ["auto_done", "ask_daily"] as const;

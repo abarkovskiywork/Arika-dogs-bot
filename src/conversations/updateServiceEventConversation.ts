@@ -1,6 +1,8 @@
 import { InlineKeyboard } from "grammy";
+import { ServiceType, TrackingMode } from "@prisma/client";
 import type { Conversation } from "@grammyjs/conversations";
-import { getAllServiceEvents, updateServiceEvent } from "../db/serviceEventData";
+import { getCurrentServiceEvents, getServiceEventById, updateServiceEvent } from "../db/serviceEventData";
+import { backfillWalkLogsForPastDays } from "../db/walkLogData";
 import type { EContext } from "../types";
 import {
   askDogName,
@@ -8,7 +10,6 @@ import {
   askPrice,
   askWalksPerDay,
   askTrackingMode,
-  askCheckTime,
 } from "./addServiceEventConversation";
 
 type UpdateConversation = Conversation<EContext, EContext>;
@@ -17,7 +18,7 @@ async function selectServiceToUpdate(
   conversation: UpdateConversation,
   ctx: EContext
 ): Promise<number | null> {
-  const services = await getAllServiceEvents();
+  const services = await getCurrentServiceEvents();
 
   if (!services.length) {
     await ctx.reply("Нет сервисов.");
@@ -84,27 +85,24 @@ export async function updateServiceEventConversation(
   if (price === null) return;
 
   let walksPerDay = 1;
-  let trackingMode = "auto_done";
-  let checkTime: string | null = null;
+  let trackingMode: TrackingMode = TrackingMode.auto_done;
 
-  if (serviceType === "walk") {
+  if (serviceType === ServiceType.walk) {
     const walks = await askWalksPerDay(conversation, ctx);
     if (walks === null) return;
     walksPerDay = walks;
+  }
 
+  if (serviceType === ServiceType.walk || serviceType === ServiceType.cleaning) {
     const mode = await askTrackingMode(conversation, ctx);
     if (!mode) return;
     trackingMode = mode;
-
-    if (trackingMode === "ask_daily") {
-      const time = await askCheckTime(conversation, ctx);
-      if (!time) return;
-      checkTime = time;
-    }
   }
 
   const isActive = await askIsActive(conversation, ctx);
   if (isActive === null) return;
+
+  const existing = await getServiceEventById(id);
 
   const updated = await updateServiceEvent(id, {
     dogName,
@@ -112,17 +110,20 @@ export async function updateServiceEventConversation(
     price,
     walksPerDay,
     trackingMode,
-    checkTime,
     isActive,
   });
+
+  if (trackingMode === TrackingMode.ask_daily && existing) {
+    await backfillWalkLogsForPastDays(id, existing.startDate, walksPerDay);
+  }
 
   await ctx.reply(
     `✅ Сервис #${updated.id} обновлён\n` +
       `Собака: ${updated.dogName}\n` +
       `Тип: ${updated.serviceType}\n` +
       `Цена: ${updated.price}\n` +
-      (updated.serviceType === "walk"
-        ? `В день: ${updated.walksPerDay}\nРежим: ${updated.trackingMode}\nCheck time: ${updated.checkTime ?? "-"}\n`
+      (updated.serviceType === ServiceType.walk
+        ? `В день: ${updated.walksPerDay}\nРежим: ${updated.trackingMode}\n`
         : "") +
       `Статус: ${updated.isActive ? "активен" : "неактивен"}`
   );

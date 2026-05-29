@@ -5,17 +5,10 @@ import { getServiceEventById, getTodayAskDailyServiceEvents } from "../db/servic
 import { upsertReminderWalkLog } from "../db/walkLogData";
 import type { EContext } from "../types";
 import { getBelgradeDateKey, isManager, toDayDate } from "../utils/utils";
+import { CLEANING_DURATIONS } from "../utils/constants";
 
 type ServiceWithTodayLogs = Awaited<ReturnType<typeof getTodayAskDailyServiceEvents>>[number];
 
-const CLEANING_DURATIONS = [
-  { label: "0 мин",   minutes: 0 },
-  { label: "15 мин",  minutes: 15 },
-  { label: "30 мин",  minutes: 30 },
-  { label: "1 час",   minutes: 60 },
-  { label: "1.5 ч",   minutes: 90 },
-  { label: "2 часа",  minutes: 120 },
-] as const;
 
 export function buildReminderContent(services: ServiceWithTodayLogs[]) {
   const pending = services.filter((s) => s.walkLogs.length === 0);

@@ -5,6 +5,7 @@ import type { EContext } from "../types";
 import { isManager, getBelgradeDateKey, toDayDate } from "../utils/utils";
 import { getServiceEventById } from "../db/serviceEventData";
 import { upsertReminderWalkLog, sumCompletedWalkLogs } from "../db/walkLogData";
+import { CLEANING_DURATIONS } from "../utils/constants";
 
 export function registerCheckEventActions(bot: Bot<EContext>): void {
   bot.callbackQuery(/^checkview:(\d+)$/, async (ctx) => {
@@ -27,6 +28,15 @@ export function registerCheckEventActions(bot: Bot<EContext>): void {
         keyboard.text(`${i}`, `checkdo:${id}:${i}`);
       }
       await ctx.editMessageText(`${event.dogName}: сколько прогулок сегодня?`, {
+        reply_markup: keyboard,
+      });
+    } else if (event.serviceType === ServiceType.cleaning) {
+      const keyboard = new InlineKeyboard();
+      CLEANING_DURATIONS.forEach(({ label, minutes }, i) => {
+        keyboard.text(label, `rem_c:${id}:${minutes}`);
+        if ((i + 1) % 3 === 0) keyboard.row();
+      });
+      await ctx.editMessageText(`${event.dogName}: сколько длилась уборка?`, {
         reply_markup: keyboard,
       });
     } else {

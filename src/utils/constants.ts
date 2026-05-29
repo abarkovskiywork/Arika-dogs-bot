@@ -27,3 +27,11 @@ export const CALENDAR_COLORS = [
   { id: 11, emoji: "🍷", label: "тёмно-красный" },
 ] as const;
 
+export const CLEANING_DURATIONS = [
+  { label: "0 мин",   minutes: 0 },
+  { label: "15 мин",  minutes: 15 },
+  { label: "30 мин",  minutes: 30 },
+  { label: "1 час",   minutes: 60 },
+  { label: "1.5 ч",   minutes: 90 },
+  { label: "2 часа",  minutes: 120 },
+] as const;

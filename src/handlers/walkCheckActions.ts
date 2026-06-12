@@ -7,7 +7,7 @@ export function registerWalkCheckActions(bot: Bot<EContext>): void {
   bot.callbackQuery(/^walk:(\d+):(\d+)$/, async (ctx) => {
     if (!ctx.from || !isManager(ctx.from.id)) {
       return ctx.answerCallbackQuery({
-        text: "Не для тебя 😌",
+        text: "prohibited",
         show_alert: true,
       });
     }
@@ -25,7 +25,7 @@ export function registerWalkCheckActions(bot: Bot<EContext>): void {
     await ctx.answerCallbackQuery(`Отмечено: ${walksCount}`);
 
     await ctx.editMessageText(
-      `✅ Записала: ${walksCount} прогулок`
+      `✅ Записал: ${walksCount} прогулок`
     );
   });
 }

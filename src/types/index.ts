@@ -1,6 +1,10 @@
 import { ConversationFlavor } from "@grammyjs/conversations";
-import { Context, Composer } from "grammy";
+import { Context, Composer, SessionFlavor } from "grammy";
 
-
-export type EContext = ConversationFlavor<Context>
+export type SessionData = {
+    cleaningNote?: {
+        serviceId: number
+    }
+}
+export type EContext = Context & SessionFlavor<SessionData> & ConversationFlavor<Context>
 export type CommandsRegistrar = (composer: Composer<EContext>) => void

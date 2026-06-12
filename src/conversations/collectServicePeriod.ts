@@ -24,9 +24,9 @@ export async function collectServicePeriod(
   }
 
   const keyboard = new InlineKeyboard()
-    .text("Все", "srv_sel:all")
-    .text("Список", "srv_sel:list")
-    .row();
+    //.text("Все", "srv_sel:all")
+    //.text("Список", "srv_sel:list")
+    //.row();
 
   services.forEach((s, i) => {
     keyboard.text(`#${s.id} ${s.dogName} (${s.serviceType})`, `srv_sel:${s.id}`);

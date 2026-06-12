@@ -68,6 +68,6 @@ export function registerCommands(bot: Bot<EContext>) {
     }
 
     bot.use(publicComposer);
-    bot.use(adminComposer);
     bot.use(managerComposer);
+    bot.use(adminComposer);
 }

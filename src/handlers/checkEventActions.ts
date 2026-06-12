@@ -9,7 +9,7 @@ import { upsertReminderWalkLog, sumCompletedWalkLogs } from "../db/walkLogData";
 export function registerCheckEventActions(bot: Bot<EContext>): void {
   bot.callbackQuery(/^checkview:(\d+)$/, async (ctx) => {
     if (!ctx.from || !isManager(ctx.from.id)) {
-      return ctx.answerCallbackQuery({ text: "Не для тебя 😌", show_alert: true });
+      return ctx.answerCallbackQuery({ text: "prohibited", show_alert: true });
     }
 
     const id = Number(ctx.match[1]);

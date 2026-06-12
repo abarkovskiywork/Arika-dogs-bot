@@ -61,17 +61,16 @@ async function incomeReportConversation(
       });
       actualWalks = logs.reduce((sum, l) => sum + l.walksCount, 0);
       serviceIncome = actualWalks * service.price;
-      line =
-        `${service.dogName} #${service.id}\n` +
-        `type: ${service.serviceType}\n` +
-        `price: ${service.price}\n` +
-        `walks: ${actualWalks}\n` +
-        `income: ${serviceIncome}`;
+      logs.forEach(log => {
+        line =`${log.date} ${log.walksCount !== 0 ? log.walksCount + " ✅" : "❌"} `;
+        reportLines.push(line);
+      })
+      
     }
 
     totalIncome += serviceIncome;
     totalActualWalks += actualWalks;
-    reportLines.push(line);
+    
   }
 
   await ctx.reply(

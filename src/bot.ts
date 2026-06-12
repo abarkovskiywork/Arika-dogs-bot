@@ -1,5 +1,5 @@
 import "dotenv/config"
-import { Bot } from "grammy"
+import { Bot, session } from "grammy"
 import { conversations, createConversation } from "@grammyjs/conversations"
 import { registerSyncServicesJob } from "./jobs/serviceSyncJob"
 import { registerSyncCalendarPollingJob } from "./jobs/serviceSyncJobPolling"
@@ -14,18 +14,26 @@ import { COMMANDS_HELP_LIST } from "./utils/constants"
 import { addServiceEventConversation } from "./conversations/addServiceEventConversation"
 import { setupServiceConversation } from "./conversations/setupServiceConversation"
 import { registerLocationHandler } from "./handlers/locationHandler"
+import { cleaningNoteConversation } from "./conversations/cleaningNoteConversation"
 
 const bot = new Bot<EContext>(process.env.BOT_TOKEN!);
 
 async function main() {
     await bot.api.setMyCommands(COMMANDS_HELP_LIST);
 
+    bot.use(
+        session({
+            initial: () => ({})
+        })
+    );
+
     bot.use(conversations());
 
     // const bookingConversation = require("./conversations/bookingConversation");
     bot.use(createConversation(addServiceEventConversation));
     bot.use(createConversation(setupServiceConversation));
-
+    bot.use(createConversation(cleaningNoteConversation));
+    
     // const bookingConversationCalendar = require("./conversations/bookingConversationCalendar");
     // bot.use(createConversation(bookingConversationCalendar));
 

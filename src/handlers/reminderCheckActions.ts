@@ -36,13 +36,13 @@ export function buildReminderContent(services: ServiceWithTodayLogs[]) {
     if ((i + 1) % 2 === 0) keyboard.row();
   });
 
-  return { text: `🔔 Отметь прогулки:${doneText}`, keyboard };
+  return { text: `🔔 Отметь события:${doneText}`, keyboard };
 }
 
 export function registerReminderCheckActions(bot: Bot<EContext>): void {
   bot.callbackQuery(/^rem_s:(\d+)$/, async (ctx) => {
     if (!ctx.from || !isManager(ctx.from.id)) {
-      return ctx.answerCallbackQuery({ text: "Не для тебя 😌", show_alert: true });
+      return ctx.answerCallbackQuery({ text: "prohibited", show_alert: true });
     }
 
     const id = Number(ctx.match[1]);
@@ -61,21 +61,17 @@ export function registerReminderCheckActions(bot: Bot<EContext>): void {
       await ctx.editMessageText(`${service.dogName}: сколько прогулок сегодня?`, {
         reply_markup: keyboard,
       });
-    } else {
-      const keyboard = new InlineKeyboard();
-      CLEANING_DURATIONS.forEach(({ label, minutes }, i) => {
-        keyboard.text(label, `rem_c:${id}:${minutes}`);
-        if ((i + 1) % 3 === 0) keyboard.row();
-      });
-      await ctx.editMessageText(`${service.dogName}: сколько длилась уборка?`, {
-        reply_markup: keyboard,
-      });
+    } else if (service.serviceType === ServiceType.cleaning) {
+      ctx.session.cleaningNote = {
+        serviceId: service.id
+      }
+      await ctx.conversation.enter("cleaningNoteConversation", {serivceId: service.id})
     }
   });
 
   bot.callbackQuery(/^rem_w:(\d+):(\d+)$/, async (ctx) => {
     if (!ctx.from || !isManager(ctx.from.id)) {
-      return ctx.answerCallbackQuery({ text: "Не для тебя 😌", show_alert: true });
+      return ctx.answerCallbackQuery({ text: "prohibited", show_alert: true });
     }
 
     const serviceId = Number(ctx.match[1]);
@@ -92,7 +88,7 @@ export function registerReminderCheckActions(bot: Bot<EContext>): void {
 
   bot.callbackQuery(/^rem_c:(\d+):(\d+)$/, async (ctx) => {
     if (!ctx.from || !isManager(ctx.from.id)) {
-      return ctx.answerCallbackQuery({ text: "Не для тебя 😌", show_alert: true });
+      return ctx.answerCallbackQuery({ text: "prohibited", show_alert: true });
     }
 
     const serviceId = Number(ctx.match[1]);

@@ -28,6 +28,7 @@ export async function upsertReminderWalkLog(data: {
   serviceEventId: number;
   date: Date;
   walksCount: number;
+  note?: string | null;
   durationMinutes?: number;
 }) {
   await prisma.walkLog.deleteMany({ where: { serviceEventId: data.serviceEventId, date: data.date } });

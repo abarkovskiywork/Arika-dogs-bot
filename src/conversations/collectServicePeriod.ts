@@ -1,7 +1,7 @@
 import { InlineKeyboard } from "grammy";
 import type { Conversation } from "@grammyjs/conversations";
 import { getActiveServiceEvents } from "../db/serviceEventData";
-import { isValidDate } from "../utils/utils";
+import { getBelgradeDateKey, isValidDate } from "../utils/utils";
 import type { EContext } from "../types";
 
 type AnyConversation = Conversation<EContext, EContext>;
@@ -14,7 +14,8 @@ export type ServicePeriodInput = {
 
 export async function collectServicePeriod(
   conversation: AnyConversation,
-  ctx: EContext
+  ctx: EContext,
+  periodSelection: "dates" | "months" = "dates"
 ): Promise<ServicePeriodInput | null> {
   const services = await getActiveServiceEvents();
 
@@ -74,6 +75,46 @@ export async function collectServicePeriod(
 
     serviceIds = [id];
     await cb.editMessageText(`Выбрано: #${chosen.id} ${chosen.dogName}`);
+  }
+
+  if (periodSelection === "months") {
+    // Keep the offered months stable when the conversation is replayed.
+    const today = await conversation.external(() => getBelgradeDateKey());
+    const [year, month] = today.split("-").map(Number);
+    const formatter = new Intl.DateTimeFormat("ru-RU", {
+      month: "long",
+      year: "numeric",
+      timeZone: "UTC",
+    });
+    const months = Array.from({ length: 5 }, (_, offset) => {
+      const start = new Date(Date.UTC(year, month - 1 - offset, 1));
+      const end = new Date(Date.UTC(start.getUTCFullYear(), start.getUTCMonth() + 1, 0));
+      const startDate = start.toISOString().slice(0, 10);
+      const label = formatter.format(start);
+      return {
+        label: label.charAt(0).toUpperCase() + label.slice(1),
+        data: `srv_month:${startDate.slice(0, 7)}`,
+        startDate,
+        endDate: end.toISOString().slice(0, 10),
+      };
+    });
+    const monthKeyboard = new InlineKeyboard();
+    for (const month of months) {
+      monthKeyboard.text(month.label, month.data).row();
+    }
+    const prompt = await ctx.reply("Выбери месяц:", { reply_markup: monthKeyboard });
+
+    while (true) {
+      const monthCtx = await conversation.waitFor("callback_query:data");
+      const chosen = months.find((month) => month.data === monthCtx.callbackQuery.data);
+      if (!chosen || monthCtx.callbackQuery.message?.message_id !== prompt.message_id) {
+        await monthCtx.answerCallbackQuery({ text: "Выбери месяц на кнопках ниже." });
+        continue;
+      }
+      await monthCtx.answerCallbackQuery();
+      await monthCtx.editMessageText(`Месяц: ${chosen.label}`);
+      return { serviceIds, startDate: chosen.startDate, endDate: chosen.endDate };
+    }
   }
 
   await ctx.reply("Дата начала? Формат YYYY-MM-DD");

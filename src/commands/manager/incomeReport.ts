@@ -2,7 +2,7 @@ import { TrackingMode } from "@prisma/client";
 import type { Composer } from "grammy";
 import { createConversation } from "@grammyjs/conversations";
 import type { Conversation } from "@grammyjs/conversations";
-import { prisma } from "../../db/prisma";
+import { prisma } from "../../db/prisma"; 
 import { getServiceEventsByIds } from "../../db/serviceEventData";
 import { getEventInstances } from "../../services/googleCalendarService";
 import { addOneDay, getInstanceDate, toDayDate } from "../../utils/utils";
@@ -13,7 +13,7 @@ async function incomeReportConversation(
   conversation: Conversation<EContext, EContext>,
   ctx: EContext
 ): Promise<void> {
-  const input = await collectServicePeriod(conversation, ctx);
+  const input = await collectServicePeriod(conversation, ctx, "months");
   if (!input) return;
 
   const { serviceIds, startDate, endDate } = input;

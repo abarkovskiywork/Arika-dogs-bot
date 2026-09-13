@@ -67,7 +67,7 @@ async function incomeReportConversation(
       actualWalks = logs.reduce((sum, l) => sum + l.walksCount, 0);
       serviceIncome = actualWalks * service.price;
       reportLines.push(`${service.dogName} #${service.id}\n` + buildWalkReportLines({
-        logs, startDate, endDate, serviceStart: service.startDate, serviceEnd: service.endDate, today,
+        logs, startDate, endDate, today,
       }).join("\n"));
       
     }
@@ -79,7 +79,7 @@ async function incomeReportConversation(
 
   await ctx.reply(
     `Income report\n` +
-      `Period: ${startDate} → ${endDate}\n\n` +
+      `Period: ${new Intl.DateTimeFormat("en-US", { month: "long", year: "numeric", timeZone: "UTC" }).format(toDayDate(startDate))}\n\n` +
       reportLines.join("\n\n---\n\n") +
       `\n\nTOTAL\n` +
       `walks: ${totalActualWalks}\n` +

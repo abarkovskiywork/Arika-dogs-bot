@@ -11,13 +11,20 @@ assert.equal(getCheckDate(oldMessage, "2026-09-10"), "2026-09-10");
 assert.throws(() => getCheckDate({}));
 assert.deepEqual(buildWalkReportLines({
   logs: [{ date: day("2026-09-11"), walksCount: 0 }, { date: new Date("2026-09-13T20:50:00Z"), walksCount: 1 }],
-  startDate: "2026-09-01", endDate: "2026-09-30",
-  serviceStart: day("2026-09-11"), serviceEnd: day("2026-09-30"), today: "2026-09-13",
-}), ["11-09 - 0", "12-09 - нет отметки", "13-09 - 1"]);
+  startDate: "2026-09-11", endDate: "2026-09-30", today: "2026-09-13",
+}), ["11 Sep - 0", "12 Sep - нет отметки", "13 Sep - 1"]);
 assert.deepEqual(buildWalkReportLines({
-  logs: [], startDate: "2026-09-01", endDate: "2026-09-30",
-  serviceStart: day("2026-10-01"), serviceEnd: day("2026-10-31"), today: "2026-09-13",
+  logs: [], startDate: "2026-10-01", endDate: "2026-10-31", today: "2026-09-13",
 }), []);
+const september = buildWalkReportLines({
+  logs: [{ date: day("2026-09-11"), walksCount: 0 }, { date: day("2026-09-13"), walksCount: 1 }],
+  startDate: "2026-09-01", endDate: "2026-09-30", today: "2026-09-13",
+});
+assert.equal(september.length, 13);
+assert.equal(september[0], "01 Sep - нет отметки");
+assert.equal(september[10], "11 Sep - 0");
+assert.equal(september[11], "12 Sep - нет отметки");
+assert.equal(september[12], "13 Sep - 1");
 
 class Keyboard {
   buttons = [];

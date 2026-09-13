@@ -1,8 +1,7 @@
 import { InlineKeyboard } from "grammy";
 import { ServiceType, TrackingMode } from "@prisma/client";
 import type { Conversation } from "@grammyjs/conversations";
-import { getCurrentServiceEvents, getServiceEventById, updateServiceEvent } from "../db/serviceEventData";
-import { backfillWalkLogsForPastDays } from "../db/walkLogData";
+import { getCurrentServiceEvents, updateServiceEvent } from "../db/serviceEventData";
 import type { EContext } from "../types";
 import {
   askDogName,
@@ -102,8 +101,6 @@ export async function updateServiceEventConversation(
   const isActive = await askIsActive(conversation, ctx);
   if (isActive === null) return;
 
-  const existing = await getServiceEventById(id);
-
   const updated = await updateServiceEvent(id, {
     dogName,
     serviceType,
@@ -112,10 +109,6 @@ export async function updateServiceEventConversation(
     trackingMode,
     isActive,
   });
-
-  if (trackingMode === TrackingMode.ask_daily && existing) {
-    await backfillWalkLogsForPastDays(id, existing.startDate, walksPerDay);
-  }
 
   await ctx.reply(
     `✅ Сервис #${updated.id} обновлён\n` +

@@ -5,7 +5,8 @@ import type { Conversation } from "@grammyjs/conversations";
 import { prisma } from "../../db/prisma"; 
 import { getServiceEventsByIds } from "../../db/serviceEventData";
 import { getEventInstances } from "../../services/googleCalendarService";
-import { addOneDay, getInstanceDate, toDayDate } from "../../utils/utils";
+import { getBelgradeDateKey, getInstanceDate, toDayDate } from "../../utils/utils";
+import { buildWalkReportLines } from "../../utils/walkReport";
 import { collectServicePeriod } from "../../conversations/collectServicePeriod";
 import type { EContext } from "../../types";
 
@@ -21,7 +22,10 @@ async function incomeReportConversation(
   const services = await getServiceEventsByIds(serviceIds);
 
   const timeMin = `${startDate}T00:00:00+02:00`;
-  const timeMax = `${addOneDay(endDate)}T00:00:00+02:00`;
+  const nextDay = toDayDate(endDate);
+  nextDay.setUTCDate(nextDay.getUTCDate() + 1);
+  const timeMax = `${nextDay.toISOString().slice(0, 10)}T00:00:00+02:00`;
+  const today = await conversation.external(() => getBelgradeDateKey());
 
   let totalIncome = 0;
   let totalActualWalks = 0;
@@ -52,19 +56,19 @@ async function incomeReportConversation(
         `days: ${dayCount}\n` +
         `walks: ${actualWalks}\n` +
         `income: ${serviceIncome}`;
+      reportLines.push(line);
     } else {
       const logs = await prisma.walkLog.findMany({
         where: {
           serviceEventId: service.id,
-          date: { gte: toDayDate(startDate), lte: toDayDate(endDate) },
+          date: { gte: toDayDate(startDate), lt: nextDay },
         },
       });
       actualWalks = logs.reduce((sum, l) => sum + l.walksCount, 0);
       serviceIncome = actualWalks * service.price;
-      logs.forEach(log => {
-        line =`${log.date} ${log.walksCount !== 0 ? log.walksCount + " ✅" : "❌"} `;
-        reportLines.push(line);
-      })
+      reportLines.push(`${service.dogName} #${service.id}\n` + buildWalkReportLines({
+        logs, startDate, endDate, serviceStart: service.startDate, serviceEnd: service.endDate, today,
+      }).join("\n"));
       
     }
 

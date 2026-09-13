@@ -2,7 +2,7 @@ import { InlineKeyboard } from "grammy";
 import { ServiceType, TrackingMode } from "@prisma/client";
 import { conversations, type Conversation } from "@grammyjs/conversations";
 import { getNeedsSetupServiceEvents, updateServiceEvent } from "../db/serviceEventData";
-import { backfillWalkLogsForPastDays, upsertReminderWalkLog } from "../db/walkLogData";
+import { upsertReminderWalkLog } from "../db/walkLogData";
 import type { EContext } from "../types";
 import { getBelgradeDateKey, toDayDate } from "../utils/utils";
 
@@ -20,9 +20,10 @@ export async function cleaningNoteConversation(conversation: CleaningNoteConvers
 
 
     const serviceEventId = pending.serviceId
-    const today = toDayDate(getBelgradeDateKey());
+    const dateKey = pending.dateKey ?? await conversation.external(() => getBelgradeDateKey());
+    const today = toDayDate(dateKey);
     
-    await ctx.reply("Сегодня была уборка?", {
+    await ctx.reply(`Была уборка за ${dateKey}?`, {
         reply_markup: new InlineKeyboard()
             .text("Да ✅", "cleaning_done:1")
             .text("Нет ❌", "cleaning_done:0")

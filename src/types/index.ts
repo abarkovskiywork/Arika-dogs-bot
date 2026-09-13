@@ -4,6 +4,7 @@ import { Context, Composer, SessionFlavor } from "grammy";
 export type SessionData = {
     cleaningNote?: {
         serviceId: number
+        dateKey?: string
     }
 }
 export type EContext = Context & SessionFlavor<SessionData> & ConversationFlavor<Context>

@@ -59,8 +59,11 @@ export async function getActiveCurrentServiceEvents() {
 }
 
 export async function getTodayAskDailyServiceEvents() {
-  const todayKey = getBelgradeDateKey();
-  const today = toDayDate(todayKey);
+  return getAskDailyServiceEventsForDate(getBelgradeDateKey());
+}
+
+export async function getAskDailyServiceEventsForDate(dateKey: string) {
+  const today = toDayDate(dateKey);
   return prisma.serviceEvent.findMany({
     where: {
       isActive: true,

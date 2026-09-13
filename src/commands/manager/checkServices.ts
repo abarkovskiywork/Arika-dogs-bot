@@ -22,7 +22,7 @@ export function registerCheckCommand(composer: Composer<EContext>) {
       const logsToday = await getWalkLogsForEventToday(event.id, today);
       const label = logsToday.length > 0 ? `✅ ${event.dogName}` : event.dogName;
 
-      keyboard.text(label, `checkview:${event.id}`);
+      keyboard.text(label, `checkview:${event.id}:${todayKey}`);
       if ((i + 1) % 2 === 0) keyboard.row();
     }
 
